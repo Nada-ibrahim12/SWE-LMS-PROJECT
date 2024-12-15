@@ -2,6 +2,7 @@ package com.example.demo.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Random;
 
 @Entity
 public class Attendance {
@@ -63,8 +64,8 @@ public class Attendance {
         return otp;
     }
 
-    public void setOtp(String otp) {
-        this.otp = otp;
+    public void setOtp(String generateOTP) {
+        this.otp = generateOTP;
     }
 
     public boolean isAttend() {
@@ -81,5 +82,17 @@ public class Attendance {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String generateOTP() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder otp = new StringBuilder();
+        Random random = new Random();
+
+        for (int i = 0; i <= 5; i++) {
+            int index = random.nextInt(characters.length());
+            otp.append(characters.charAt(index));
+        }
+        return otp.toString();
     }
 }

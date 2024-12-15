@@ -1,7 +1,6 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.Attendance;
-import com.example.demo.model.user;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -22,6 +21,7 @@ public class AttendanceRepository {
                 .findFirst();
     }
     public Attendance save(Attendance attendance) {
+//        setStudentAttendance(attendance.isAttend());
         attendanceList.add(attendance);
         return attendance;
     }
@@ -32,6 +32,16 @@ public class AttendanceRepository {
     public Optional<Attendance> findByAttend(Boolean attend){
         return attendanceList.stream()
                 .filter(a -> a.isAttend())
+                .findAny();
+    }
+    public Optional<Attendance> findAttendanceOfStudent(Long id) {
+        return attendanceList.stream()
+                .filter(a -> a.getStudentId().equals(id))
+                .findAny();
+    }
+    public Optional<Attendance> findAllAttendanceOfLesson(Long id) {
+        return attendanceList.stream()
+                .filter(a -> a.getLessonId().equals(id))
                 .findAny();
     }
 }

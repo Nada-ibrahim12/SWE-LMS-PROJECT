@@ -22,6 +22,12 @@ public class AttendanceService {
     public Optional<Attendance> findByStatus(Boolean status) {
         return attendanceRepository.findByAttend(status);
     }
+    public Optional<Attendance> findAttendanceOfStudent(Long id) {
+        return attendanceRepository.findAttendanceOfStudent(id);
+    }
+    public Optional<Attendance> findAllAttendanceOfLesson(Long id) {
+        return attendanceRepository.findAllAttendanceOfLesson(id);
+    }
     public Attendance save(Attendance attendance) {
         return attendanceRepository.save(attendance);
     }
