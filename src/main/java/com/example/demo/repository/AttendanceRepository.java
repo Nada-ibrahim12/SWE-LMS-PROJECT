@@ -25,13 +25,13 @@ public class AttendanceRepository {
         attendanceList.add(attendance);
         return attendance;
     }
-    public void deleteById(Long id) {
-        attendanceList.removeIf(a -> a.getId().equals(id));
-    }
+//    public void deleteById(Long id) {
+//        attendanceList.removeIf(a -> a.getId().equals(id));
+//    }
 
     public Optional<Attendance> findByAttend(Boolean attend){
         return attendanceList.stream()
-                .filter(a -> a.isAttend())
+                .filter(a -> a.isAttend(attend))
                 .findAny();
     }
     public Optional<Attendance> findAttendanceOfStudent(Long id) {

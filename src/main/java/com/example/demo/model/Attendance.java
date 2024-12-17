@@ -14,10 +14,13 @@ public class Attendance {
     private Long lessonId;
 
     @Column(nullable = false)
+    private Long courseId;
+
+    @Column(nullable = false)
     private Long studentId;
 
-    @Column(length = 6, nullable = false)
-    private String otp;
+//    @Column(length = 6, nullable = false)
+//    private String otp;
 
     @Column(nullable = false)
     private boolean isAttend;
@@ -27,11 +30,11 @@ public class Attendance {
 
     public Attendance() {}
 
-    public Attendance(Long id, Long lessonId, Long studentId, String otp, boolean isAttend, LocalDateTime timestamp) {
+    public Attendance(Long id, Long lessonId, Long studentId, boolean isAttend, LocalDateTime timestamp) {
         this.id = id;
         this.lessonId = lessonId;
         this.studentId = studentId;
-        this.otp = otp;
+//        this.otp = otp;
         this.isAttend = isAttend;
         this.timestamp = timestamp;
     }
@@ -52,6 +55,15 @@ public class Attendance {
         this.lessonId = lessonId;
     }
 
+    public Long getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(Long courseId) {
+        this.courseId = courseId;
+    }
+
+
     public Long getStudentId() {
         return studentId;
     }
@@ -60,16 +72,16 @@ public class Attendance {
         this.studentId = studentId;
     }
 
-    public String getOtp() {
-        return otp;
-    }
+//    public String getOtp() {
+//        return otp;
+//    }
+//
+//    public void setOtp(String generateOTP) {
+//        this.otp = generateOTP;
+//    }
 
-    public void setOtp(String generateOTP) {
-        this.otp = generateOTP;
-    }
-
-    public boolean isAttend() {
-        return isAttend;
+    public boolean isAttend(boolean attend) {
+        return attend;
     }
 
     public void SetIsAttend(boolean isAttend) {

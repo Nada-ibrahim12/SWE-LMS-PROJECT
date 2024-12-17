@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.AttendanceRequest;
 import com.example.demo.model.Attendance;
 import com.example.demo.services.OTPService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.services.AttendanceService;
@@ -15,18 +17,29 @@ public class AttendanceController {
 
     @Autowired
     private AttendanceService attendanceService;
-    private OTPService otpService;
 
-    @GetMapping("/generateOtp")
-    public String generateOtp() {
-        return otpService.generateOTP();
+    @PostMapping("/mark")
+    public ResponseEntity<String> markAttendance(@RequestBody AttendanceRequest request) {
+        try {
+            attendanceService.markAttendance(request);
+            return ResponseEntity.ok("Attendance marked successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-    @GetMapping
+//    private OTPService otpService;
+//
+//    @GetMapping("/generateOtp")
+//    public String generateOtp() {
+//        return otpService.generateOTP();
+//    }
+
+    @GetMapping("/all")
     public List<Attendance> getAllAttendance() {
         return attendanceService.findAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public Optional<Attendance> getAttendanceById(@PathVariable Long id){
         return attendanceService.findById(id);
     }
@@ -36,21 +49,21 @@ public class AttendanceController {
         return attendanceService.findByStatus(status);
     }
 
-    @PostMapping("/add")
-    public Attendance addAttendance(@RequestBody Attendance attendance) {
-        return attendanceService.save(attendance);
-    }
+//    @PostMapping("/add")
+//    public Attendance addAttendance(@RequestBody Attendance attendance) {
+//        return attendanceService.save(attendance);
+//    }
 
-    @DeleteMapping("/{id}")
-    public void deleteAttendanceById(@PathVariable Long id) {
-        attendanceService.deleteById(id);
-    }
+//    @DeleteMapping("/{id}")
+//    public void deleteAttendanceById(@PathVariable Long id) {
+//        attendanceService.deleteById(id);
+//    }
 
-    @GetMapping("/{studentid}")
+    @GetMapping("/student/{studentId}")
     public Optional<Attendance> findAttendanceOfStudent(@PathVariable Long studentId) {
         return attendanceService.findAttendanceOfStudent(studentId);
     }
-    @GetMapping("/{lessonid}")
+    @GetMapping("/lesson/{lessonId}")
     public Optional<Attendance> findAllAttendanceOfLesson(@PathVariable Long lessonId) {
         return attendanceService.findAttendanceOfStudent(lessonId);
     }
