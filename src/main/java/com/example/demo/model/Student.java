@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class Student extends user {
 
-    public Student(String userId, String username, String role) {
-        super(userId, username, role);
+    public Student(String userId, String username, String password, String role) {
+        super(userId, username, password, role);
     }
 
     private String studentEmail;
