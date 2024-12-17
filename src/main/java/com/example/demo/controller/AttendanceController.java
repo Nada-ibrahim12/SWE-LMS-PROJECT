@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.demo.services.AttendanceService;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/attendance")
@@ -27,12 +28,16 @@ public class AttendanceController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PostMapping("/generate-otp")
+    public ResponseEntity<String> generateOtp(@RequestParam Long courseId, @RequestParam Long lessonId) {
+        String otp = attendanceService.generateAndStoreOtp(courseId, lessonId);
+        return ResponseEntity.ok("Generated OTP: " + otp);
+    }
 //    private OTPService otpService;
 //
 //    @GetMapping("/generateOtp")
-//    public String generateOtp() {
-//        return otpService.generateOTP();
-//    }
+
 
     @GetMapping("/all")
     public List<Attendance> getAllAttendance() {

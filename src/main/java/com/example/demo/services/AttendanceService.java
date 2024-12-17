@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class AttendanceService {
@@ -59,4 +60,20 @@ public class AttendanceService {
 //    public void deleteById(Long id) {
 //        attendanceRepository.deleteById(id);
 //    }
+public String generateOTP() {
+    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    StringBuilder otp = new StringBuilder();
+    Random random = new Random();
+
+    for (int i = 0; i <= 5; i++) {
+        int index = random.nextInt(characters.length());
+        otp.append(characters.charAt(index));
+    }
+    return otp.toString();
+}
+    public String generateAndStoreOtp(Long courseid, Long lessonid) {
+        String otp = generateOTP();
+        otpService.generateOtp(courseid, lessonid, otp);
+        return otp;
+    }
 }

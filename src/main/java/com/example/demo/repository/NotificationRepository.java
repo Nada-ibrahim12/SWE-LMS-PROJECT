@@ -24,5 +24,24 @@ public class NotificationRepository {
     }
     public void delete(Long id) {
         notifications.removeIf(notification -> notification.getId().equals(id));
+
+    }
+    public List<Notification> findByUserIdAndIsRead(Long userId, boolean isRead) {
+        List<Notification> notifications = new ArrayList<>();
+        for (Notification notification : notifications) {
+            if (notification.getUserId() == userId && notification.isRead() == isRead) {
+                notifications.add(notification);
+            }
+        }
+        return notifications;
+    }
+    public List<Notification> findByUserId(Long userId) {
+        List<Notification> notifications = new ArrayList<>();
+        for (Notification notification : notifications) {
+            if (notification.getUserId() == userId) {
+                notifications.add(notification);
+            }
+        }
+        return notifications;
     }
 }

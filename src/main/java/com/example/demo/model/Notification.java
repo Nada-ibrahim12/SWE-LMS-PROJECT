@@ -18,6 +18,8 @@ public class Notification {
     @Column(name = "user_id", nullable = false)
     private long userId;
 
+    private String role;
+
     @Column(name = "is_read", nullable = false)
     private boolean isRead;
 
@@ -25,11 +27,12 @@ public class Notification {
 
     public Notification() {}
 
-    public Notification(Long id,String message, long userId, boolean isRead, LocalDateTime timestamp) {
+    public Notification(Long id,String message, long userId, String role, boolean isRead, LocalDateTime timestamp) {
         this.id = id;
         this.message = message;
         this.userId = userId;
-        this.isRead = isRead;
+        this.role = role;
+        this.isRead = false;
         this.timestamp = timestamp;
     }
 
@@ -69,5 +72,12 @@ public class Notification {
     }
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
