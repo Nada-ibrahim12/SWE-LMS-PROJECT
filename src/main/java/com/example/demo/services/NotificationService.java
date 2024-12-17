@@ -1,4 +1,5 @@
 package com.example.demo.services;
+import com.example.demo.services.EmailSenderService;
 import com.example.demo.model.Notification;
 import com.example.demo.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,10 @@ public class NotificationService {
 
     @Autowired
     private NotificationRepository notificationRepository;
-    public Notification sendNotification(Long id, Long userId, String role, String message) {
+    @Autowired
+    private EmailSenderService emailSenderService;
+
+    public Notification sendNotification(Long id, Long userId, String role, String message, String userEmail, boolean sendEmail) {
         Notification notification = new Notification();
         notification.setId(id);
         notification.setUserId(userId);
@@ -21,7 +25,13 @@ public class NotificationService {
         notification.setMessage(message);
         notification.setRead(false);
         notification.setTimestamp(LocalDateTime.now());
-        return notificationRepository.save(notification);
+        notificationRepository.save(notification);
+
+        if (sendEmail && userEmail != null) {
+            String subject = "Notification: " + role + " Update";
+            emailSenderService.sendEmail(userEmail, subject, message);
+        }
+        return notification;
     }
     public List<Notification> getAllNotifications() {
         return notificationRepository.findAll();
