@@ -38,15 +38,27 @@ public class AssignmentController {
 
     @PostMapping("/submit")
     public ResponseEntity<String> submitAssignment(
+            @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam("assignment") String assignmentData,
             @RequestParam("file") MultipartFile file) {
+
         try {
-            Assignment assignment = objectMapper.readValue(assignmentData, Assignment.class);
-            assignment.setStatus("Submitted");
-            assignmentService.submitAssignmentWithFile(assignment, file);
-            return ResponseEntity.ok("Assignment submitted successfully");
+            String token = extractToken(authorizationHeader);
+            if (userService.hasRole(token, "Student")) {
+                try {
+                    Assignment assignment = objectMapper.readValue(assignmentData, Assignment.class);
+                    assignment.setStatus("Submitted");
+                    assignment.setStudentId(userService.getUserFromToken(token).getUserId());
+                    assignmentService.submitAssignmentWithFile(assignment, file);
+                    return ResponseEntity.ok("Assignment submitted successfully");
+                } catch (Exception e) {
+                    return ResponseEntity.status(400).body("Failed to submit assignment: " + e.getMessage());
+                }
+            } else {
+                return ResponseEntity.status(403).body("Forbidden: Only students can submit assignments.");
+            }
         } catch (Exception e) {
-            return ResponseEntity.status(400).body("Failed to submit assignment: " + e.getMessage());
+            return ResponseEntity.status(401).body("Invalid token or missing authorization.");
         }
     }
 
@@ -65,10 +77,10 @@ public class AssignmentController {
         }
     }
 
-    @PutMapping("/{id}/grade")
+    @PutMapping("/grade")
     public ResponseEntity<Optional<Object>> gradeAssignment(
             @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable Long id, @RequestBody String feedback) {
+            @RequestParam("quiz-id") Long id, @RequestBody String feedback) {
         try {
             String token = extractToken(authorizationHeader);
             if (userService.hasRole(token, "Instructor")) {

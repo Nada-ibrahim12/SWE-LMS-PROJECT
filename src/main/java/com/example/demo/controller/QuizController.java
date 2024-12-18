@@ -62,9 +62,13 @@ public class QuizController {
     //     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     // }
 
-    @GetMapping
-    public ResponseEntity<List<Quiz>> getAllQuizzes() {
-        return ResponseEntity.ok(quizService.getAllQuizzes());
+    @GetMapping("/instructor/all")
+    public ResponseEntity<List<Quiz>> getAllQuizzes(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = extractToken(authorizationHeader);
+        if (userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.ok(quizService.getAllQuizzes());
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @GetMapping("/student/get-quiz/{id}")
@@ -89,7 +93,7 @@ public class QuizController {
 
     @GetMapping("/instructor/quizzes-radnomize/{quizId}")
     public List<Question> getRandomQuestionsForAttempt(@RequestHeader("Authorization") String authorizationHeader,
-                                                       @PathVariable Long quizId, @RequestParam int numQuestions) {
+                                                       @RequestParam Long quizId, @RequestParam int numQuestions) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Instructor")) {
             return quizService.getRandomizedQuestions(quizId, numQuestions);
