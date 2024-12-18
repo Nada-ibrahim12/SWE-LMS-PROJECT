@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class UserRepository {
 
     private final List<user> userList = new ArrayList<>();
-    private long userIdCounter = 0;
+    private long userIdCounter = 2;
 
     public user save(user user) {
         if (user.getUserId() == null) {
