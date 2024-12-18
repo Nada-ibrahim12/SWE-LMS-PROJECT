@@ -12,13 +12,16 @@ import java.util.stream.Collectors;
 @Repository
 public class UserRepository {
 
-    private List<user> userList = new ArrayList<>();
+    private final List<user> userList = new ArrayList<>();
+    private long userIdCounter = 0;
 
     public user save(user user) {
+        if (user.getUserId() == null) {
+            user.setUserId(String.valueOf(userIdCounter++));
+        }
         userList.add(user);
         return user;
     }
-
     public Optional<user> findByUsername(String username) {
         return userList.stream()
                 .filter(user -> user.getUsername().equals(username))

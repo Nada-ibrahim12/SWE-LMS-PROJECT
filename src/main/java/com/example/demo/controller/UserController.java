@@ -4,15 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.model.Course;
 import com.example.demo.model.Lesson;
@@ -269,5 +261,27 @@ public ResponseEntity<List<Course>> viewAvailableCourses(@RequestHeader("Authori
     private boolean isValidAuthorizationHeader(String authorizationHeader) {
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
     }
- 
+    // ================================
+    // PROFILE MANAGEMENT
+    // ================================
+
+    @GetMapping("/profile")
+    public ResponseEntity<user> viewProfile(@RequestHeader("Authorization") String authorizationHeader) {
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
+            return ResponseEntity.status(400).body(null);
+        }
+        String token = authorizationHeader.replace("Bearer ", "");
+        return ResponseEntity.ok(userService.getUserProfile(token));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<String> updateProfile(@RequestHeader("Authorization") String authorizationHeader,
+                                                @RequestBody user updatedProfile) {
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
+            return ResponseEntity.status(400).body("Missing or invalid Authorization header");
+        }
+        String token = authorizationHeader.replace("Bearer ", "");
+        userService.updateUserProfile(token, updatedProfile);
+        return ResponseEntity.ok("Profile updated successfully");
+    }
 }

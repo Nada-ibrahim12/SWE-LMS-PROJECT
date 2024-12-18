@@ -30,6 +30,11 @@ public class UserService {
             System.out.println("Admin user created with username: admin and password: admin123");
         }
     }
+    public user getUserFromToken(String token) {
+        String username = jwtUtil.extractUsername(token);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
     public String loginUser(String username, String password) {
         user user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
@@ -121,4 +126,20 @@ public class UserService {
     //     // Dummy implementation
     //     return java.util.List.of("Course 1", "Course 2");
     // }
+
+    public user getUserProfile(String token) {
+        String username = jwtUtil.extractUsername(token);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    public void updateUserProfile(String token, user updatedProfile) {
+        String username = jwtUtil.extractUsername(token);
+        user existingUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        existingUser.setUsername(updatedProfile.getUsername());
+        existingUser.setPassword(jwtUtil.hashPassword(updatedProfile.getPassword())); // Hash the password
+        userRepository.save(existingUser);
+    }
 }
