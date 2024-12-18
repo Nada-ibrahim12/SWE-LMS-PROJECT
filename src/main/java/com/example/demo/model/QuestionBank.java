@@ -1,6 +1,4 @@
 package com.example.demo.model;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -13,52 +11,45 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
 @Entity
-public class Quiz {
+public class QuestionBank {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String title;
-    private String description;
+
+    private String name;  
+
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Question> questions; 
 
     @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @JoinColumn(name = "course_id")
+    private Course course;  
 
-    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Question> questions = new ArrayList<>();
-
-    public Quiz() {}
-    public Quiz(String title, String description) {
-        this.title = title;
-        this.description = description;
-    }
+    
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
-    public String getTitle() {
-        return title;
+
+    public String getName() {
+        return name;
     }
-    public void setTitle(String title) {
-        this.title = title;
+
+    public void setName(String name) {
+        this.name = name;
     }
-    public String getDescription() {
-        return description;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
+
     public List<Question> getQuestions() {
         return questions;
     }
+
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
     }
-    public int getNumQuestions() {
-        return questions.size();
-    }
+
     public Course getCourse() {
         return course;
     }
@@ -66,5 +57,5 @@ public class Quiz {
     public void setCourse(Course course) {
         this.course = course;
     }
-   
 }
+

@@ -1,15 +1,15 @@
 package com.example.demo.services;
 
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.example.demo.model.user;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtil;
 
 import jakarta.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -111,14 +111,14 @@ public class UserService {
     // STUDENT OPERATIONS
     // ================================
 
-    public void enrollInCourse(String token, String courseId) {
-        String username = jwtUtil.extractUsername(token);
-        // Dummy implementation: log the enrollment
-        System.out.println("User " + username + " enrolled in course: " + courseId);
-    }
+    // public void enrollInCourse(String token, String courseId) {
+    //     String username = jwtUtil.extractUsername(token);
+    //     // Dummy implementation: log the enrollment
+    //     System.out.println("User " + username + " enrolled in course: " + courseId);
+    // }
 
-    public java.util.List<String> getEnrolledCourses(String token) {
-        // Dummy implementation
-        return java.util.List.of("Course 1", "Course 2");
-    }
+    // public java.util.List<String> getEnrolledCourses(String token) {
+    //     // Dummy implementation
+    //     return java.util.List.of("Course 1", "Course 2");
+    // }
 }

@@ -1,17 +1,18 @@
 package com.example.demo.services;
 
-import com.example.demo.model.Answer;
-import com.example.demo.model.Question;
-import com.example.demo.model.Quiz;
-import com.example.demo.repository.QuizRepository;
-import com.example.demo.repository.StudentRepository;
-import com.example.demo.services.EmailSenderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.Answer;
+import com.example.demo.model.Course;
+import com.example.demo.model.Question;
+import com.example.demo.model.Quiz;
+import com.example.demo.repository.CourseRepository;
+import com.example.demo.repository.QuizRepository;
+import com.example.demo.repository.StudentRepository;
 
 @Service
 public class QuizService {
@@ -24,10 +25,19 @@ public class QuizService {
 
     @Autowired
     private EmailSenderService emailService;
+    @Autowired
+    private CourseRepository courseRepository;
 
-    public Quiz createQuiz(Quiz quiz) {
+    // public Quiz createQuiz(Quiz quiz) {
+    //     return quizRepository.save(quiz);
+    // }
+    public Quiz createQuiz(Long courseId, Quiz quiz) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+        quiz.setCourse(course);
         return quizRepository.save(quiz);
     }
+    
 
     public List<Quiz> getAllQuizzes() {
         return quizRepository.findAll();
