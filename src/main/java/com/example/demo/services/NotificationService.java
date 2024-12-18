@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class NotificationService {
@@ -17,7 +18,13 @@ public class NotificationService {
     @Autowired
     private EmailSenderService emailSenderService;
 
-    public Notification sendNotification(Long id, Long userId, String role, String message, String userEmail, boolean sendEmail) {
+    public String generateNotificationId() {
+        return UUID.randomUUID().toString();
+    }
+
+    public Notification sendNotification(String userId, String role, String message, String userEmail, boolean sendEmail) {
+        String id = generateNotificationId();
+
         Notification notification = new Notification();
         notification.setId(id);
         notification.setUserId(userId);
@@ -45,10 +52,10 @@ public class NotificationService {
     public void deleteNotification(Long id) {
         notificationRepository.delete(id);
     }
-    public List<Notification> getUserNotifications(Long userId) {
+    public List<Notification> getUserNotifications(String userId) {
         return notificationRepository.findByUserId(userId);
     }
-    public List<Notification> getUnreadNotifications(Long userId) {
+    public List<Notification> getUnreadNotifications(String userId) {
         return notificationRepository.findByUserIdAndIsRead(userId, false);
     }
     public void markAsRead(Long notificationId) {

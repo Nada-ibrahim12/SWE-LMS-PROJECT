@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/notifications")
@@ -52,12 +53,10 @@ public class NotificationController {
         return notificationService.getNotificationById(id);
     }
 
-
     @PostMapping("/admin/send")
     public ResponseEntity<Object> sendNotification(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam Long id,
-            @RequestParam Long userId,
+            @RequestParam String userId,
             @RequestParam String role,
             @RequestParam String message,
             @RequestParam(required = false) String email,
@@ -66,11 +65,11 @@ public class NotificationController {
         try {
             String token = extractToken(authorizationHeader);
             if (userService.hasRole(token, "Admin")) {
-                if (id == null || userId == null || role == null || message == null) {
+                if ( userId == null || role == null || message == null) {
                     return ResponseEntity.badRequest().body("Missing required parameters.");
                 }
                 try {
-                    Notification notification = notificationService.sendNotification(id, userId, role, message, email, sendEmail);
+                    Notification notification = notificationService.sendNotification(userId, role, message, email, sendEmail);
                     return ResponseEntity.ok(notification);
                 } catch (Exception e) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while sending the notification.");
@@ -105,12 +104,12 @@ public class NotificationController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable Long userId) {
+    public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable String userId) {
         List<Notification> notifications = notificationService.getUserNotifications(userId);
         return ResponseEntity.ok(notifications);
     }
     @GetMapping("/user/{userId}/unread")
-    public ResponseEntity<List<Notification>> getUnreadNotifications(@PathVariable Long userId) {
+    public ResponseEntity<List<Notification>> getUnreadNotifications(@PathVariable String userId) {
         List<Notification> notifications = notificationService.getUnreadNotifications(userId);
         return ResponseEntity.ok(notifications);
     }

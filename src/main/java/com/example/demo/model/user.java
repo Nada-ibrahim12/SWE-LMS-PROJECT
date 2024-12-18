@@ -7,13 +7,15 @@ public class user {
     private String password;
     private String role; // Admin, Instructor, or Student
     private boolean isLoggedIn;
+    private String email;
 
-    public user(String userId, String username, String password, String role) {
+    public user(String userId, String username, String password, String role,String email) {
         this.userId = userId;
         this.username = username;
         this.password = password;
         this.role = role;
         this.isLoggedIn = false; // Default to logged out
+        this.email = email;
     }
 
     // Getters and setters
@@ -55,5 +57,12 @@ public class user {
 
     public void setLoggedIn(boolean loggedIn) {
         isLoggedIn = loggedIn;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

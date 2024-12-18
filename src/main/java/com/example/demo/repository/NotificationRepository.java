@@ -26,7 +26,7 @@ public class NotificationRepository {
         notifications.removeIf(notification -> notification.getId().equals(id));
 
     }
-    public List<Notification> findByUserIdAndIsRead(Long userId, boolean isRead) {
+    public List<Notification> findByUserIdAndIsRead(String userId, boolean isRead) {
         List<Notification> notifications = new ArrayList<>();
         for (Notification notification : notifications) {
             if (notification.getUserId() == userId && notification.isRead() == isRead) {
@@ -35,7 +35,7 @@ public class NotificationRepository {
         }
         return notifications;
     }
-    public List<Notification> findByUserId(Long userId) {
+    public List<Notification> findByUserId(String userId) {
         List<Notification> notifications = new ArrayList<>();
         for (Notification notification : notifications) {
             if (notification.getUserId() == userId) {

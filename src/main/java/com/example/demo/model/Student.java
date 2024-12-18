@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class Student extends user {
 
-    public Student(String userId, String username, String password, String role) {
-        super(userId, username, password, role);
+    public Student(String userId, String username, String password, String role, String email) {
+        super(userId, username, password, role, email);
     }
 
     private String studentEmail;
@@ -20,7 +20,7 @@ public class Student extends user {
     }
 
     public void setStudentEmail(String studentEmail) {
-        this.studentEmail = studentEmail;
+        this.studentEmail = getEmail();
     }
 
     public List<String> getEnrolledCourses() {

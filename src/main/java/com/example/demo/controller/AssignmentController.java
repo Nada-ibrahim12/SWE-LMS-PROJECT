@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Assignment;
+import com.example.demo.services.NotificationService;
 import com.example.demo.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,9 @@ public class AssignmentController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     private String extractToken(String authorizationHeader) {
         if (isValidAuthorizationHeader(authorizationHeader)) {
             return authorizationHeader.replace("Bearer ", "");
@@ -48,8 +52,13 @@ public class AssignmentController {
                 try {
                     Assignment assignment = objectMapper.readValue(assignmentData, Assignment.class);
                     assignment.setStatus("Submitted");
-                    assignment.setStudentId(userService.getUserFromToken(token).getUserId());
+                    String id = userService.getUserFromToken(token).getUserId();
+                    String email = userService.getUserFromToken(token).getEmail();
+                    assignment.setStudentId(id);
                     assignmentService.submitAssignmentWithFile(assignment, file);
+                    String message = "Assignment with Title: " + assignment.getTitle() + "submitted successfully";
+                    notificationService.sendNotification(id, "Student", message
+                                                         , email, false);
                     return ResponseEntity.ok("Assignment submitted successfully");
                 } catch (Exception e) {
                     return ResponseEntity.status(400).body("Failed to submit assignment: " + e.getMessage());
@@ -78,18 +87,29 @@ public class AssignmentController {
     }
 
     @PutMapping("/grade")
-    public ResponseEntity<Optional<Object>> gradeAssignment(
+    public ResponseEntity<Assignment> gradeAssignment(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam("quiz-id") Long id, @RequestBody String feedback) {
+            @RequestParam("quiz-id") Long id,
+            @RequestBody String feedback) {
         try {
             String token = extractToken(authorizationHeader);
             if (userService.hasRole(token, "Instructor")) {
                 assignmentService.gradeAssignment(id, feedback);
+                Optional<Assignment> assignment = assignmentService.getAssignmentById(id);
+                String studentId = assignment.get().getStudentId();
+
+                String email = userService.getUserById(studentId).getEmail();
+                String message = "Assignment with Title: " + assignment.get().getTitle() + " graded successfully\n Grade: " + feedback;
+                notificationService.sendNotification(studentId, "Instructor", message, email, false);
+
+                return ResponseEntity.ok(assignment.get());
             }
-            return ResponseEntity.status(403).body(Optional.empty());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).body(Optional.empty());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+        return ResponseEntity.status(403).build();
     }
+
 }
 

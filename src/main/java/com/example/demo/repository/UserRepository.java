@@ -28,6 +28,12 @@ public class UserRepository {
                 .findFirst();
     }
 
+    public Optional<user> findById(String id) {
+        return userList.stream()
+                .filter(user -> user.getUserId().equals(id))
+                .findFirst();
+    }
+
     public List<user> findAll() {
         return userList;
     }

@@ -10,13 +10,13 @@ import java.time.LocalDateTime;
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(nullable = false)
     private String message;
 
     @Column(name = "user_id", nullable = false)
-    private long userId;
+    private String userId;
 
     private String role;
 
@@ -27,7 +27,7 @@ public class Notification {
 
     public Notification() {}
 
-    public Notification(Long id,String message, long userId, String role, boolean isRead, LocalDateTime timestamp) {
+    public Notification(String id,String message, String userId, String role, boolean isRead, LocalDateTime timestamp) {
         this.id = id;
         this.message = message;
         this.userId = userId;
@@ -36,11 +36,11 @@ public class Notification {
         this.timestamp = timestamp;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -52,11 +52,11 @@ public class Notification {
         this.message = message;
     }
 
-    public long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

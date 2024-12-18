@@ -25,7 +25,7 @@ public class UserService {
     @PostConstruct // Initialize Admin account when application starts
     public void initializeAdmin() {
         if (userRepository.findByUsername("admin").isEmpty()) {
-            user adminUser = new user("1", "admin", jwtUtil.hashPassword("admin123"), "Admin");
+            user adminUser = new user("1", "admin", jwtUtil.hashPassword("admin123"), "Admin", "admin@gmail.com");
             userRepository.save(adminUser);
             System.out.println("Admin user created with username: admin and password: admin123");
         }
@@ -98,6 +98,10 @@ public class UserService {
 
     public java.util.List<user> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    public user getUserById(String id) {
+        return userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
     // ================================
