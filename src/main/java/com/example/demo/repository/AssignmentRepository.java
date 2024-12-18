@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class AssignmentRepository {
@@ -14,14 +15,12 @@ public class AssignmentRepository {
     public List<Assignment> findAll(){
         return assignments;
     }
-    public Assignment findById(Long id){
-        for(Assignment assignment : assignments){
-            if(assignment.getId() == id){
-                return assignment;
-            }
-        }
-        return null;
+    public Optional<Assignment> findById(Long id) {
+        return assignments.stream()
+                .filter(assignment -> assignment.getId().equals(id))
+                .findFirst();
     }
+
     public Assignment save(Assignment assignment){
         assignments.add(assignment);
         return assignment;
@@ -35,7 +34,7 @@ public class AssignmentRepository {
         assignments.remove(assignment);
     }
     public void deleteById(Long id){
-        Assignment assignment = findById(id);
+        Optional<Assignment> assignment = findById(id);
         assignments.remove(assignment);
     }
 

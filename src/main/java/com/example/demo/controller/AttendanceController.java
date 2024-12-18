@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.demo.services.CourseService;
+import com.example.demo.services.LessonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +30,12 @@ public class AttendanceController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CourseService courseService;
+
+    @Autowired
+    private LessonService lessonService;
 
     private String extractToken(String authorizationHeader) {
         if (isValidAuthorizationHeader(authorizationHeader)) {
@@ -66,6 +74,13 @@ public class AttendanceController {
         try {
             String token = extractToken(authorizationHeader);
             if (userService.hasRole(token, "Instructor")) {
+                if (courseService.getCourseById(courseId) != null) {
+                    return ResponseEntity.status(404).body("Course not found");
+                }
+
+                if (!lessonService.isLessonInCourse(lessonId, courseId)) {
+                    return ResponseEntity.status(400).body("Lesson does not belong to the specified course");
+                }
                 String otp = attendanceService.generateAndStoreOtp(courseId, lessonId);
                 return ResponseEntity.ok("Generated OTP: " + otp);
             }
@@ -161,8 +176,4 @@ public class AttendanceController {
             return ResponseEntity.status(400).body(Optional.empty());
         }
     }
-
-//    private boolean isValidAuthorizationHeader(String authorizationHeader) {
-//        return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
-//    }
 }

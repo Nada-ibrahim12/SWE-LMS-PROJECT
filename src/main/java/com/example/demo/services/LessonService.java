@@ -58,5 +58,9 @@ public class LessonService {
     public void deleteLesson(Long id) {
         lessonRepository.deleteById(id);
     }
+
+    public boolean isLessonInCourse(Long lessonId, Long courseId) {
+        return lessonRepository.existsByIdAndCourseId(lessonId, courseId);
+    }
 }
 

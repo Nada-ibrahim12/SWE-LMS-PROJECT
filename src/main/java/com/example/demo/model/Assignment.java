@@ -11,13 +11,24 @@ public class Assignment {
     private Long id;
 
     private String title;
-    private String description;
     private String status;
-    private String uploadedFilePath;
+    private String filePath;
+    private String studentId;
+
 
 //    @ManyToOne
 //    @JoinColumn(name = "user_id", nullable = false)
-//    private user student;
+//    private user student;\
+
+    public Assignment(Long id, String title, String filePath, String studentId) {
+        this.id = id;
+        this.title = title;
+        this.status = "Pending";
+        this.filePath = filePath;
+        this.studentId = studentId;
+    }
+
+    public Assignment() {}
 
     public Long getId() {
         return id;
@@ -31,12 +42,6 @@ public class Assignment {
     public void setTitle(String title) {
         this.title = title;
     }
-    public String getDescription() {
-        return description;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
     public String getStatus() {
         return status;
     }
@@ -44,9 +49,10 @@ public class Assignment {
         this.status = status;
     }
     public String getUploadedFilePath() {
-        return uploadedFilePath;
+        return filePath;
     }
     public void setUploadedFilePath(String uploadedFilePath) {
-        this.uploadedFilePath = uploadedFilePath;
+        this.filePath = uploadedFilePath;
     }
+
 }

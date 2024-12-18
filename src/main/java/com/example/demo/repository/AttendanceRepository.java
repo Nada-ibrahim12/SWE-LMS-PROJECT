@@ -15,34 +15,49 @@ public class AttendanceRepository {
     public List<Attendance> findAll() {
         return attendanceList;
     }
+
     public Optional<Attendance> findById(Long id) {
-        return attendanceList.stream()
+        Optional<Attendance> attendance = attendanceList.stream()
                 .filter(a -> a.getId().equals(id))
                 .findFirst();
+
+        if (attendance.isEmpty()) {
+            System.out.println("Attendance not found");
+        }
+        return attendance;
     }
+
     public Attendance save(Attendance attendance) {
-//        setStudentAttendance(attendance.isAttend());
         attendanceList.add(attendance);
         return attendance;
     }
-//    public void deleteById(Long id) {
-//        attendanceList.removeIf(a -> a.getId().equals(id));
-//    }
 
-    public Optional<Attendance> findByAttend(Boolean attend){
-        return attendanceList.stream()
+    public Optional<Attendance> findByAttend(Boolean attend) {
+        Optional<Attendance> attendance =  attendanceList.stream()
                 .filter(a -> a.isAttend(attend))
                 .findAny();
-    }
-    public Optional<Attendance> findAttendanceOfStudent(Long id) {
-        return attendanceList.stream()
-                .filter(a -> a.getStudentId().equals(id))
-                .findAny();
-    }
-    public Optional<Attendance> findAllAttendanceOfLesson(Long id) {
-        return attendanceList.stream()
-                .filter(a -> a.getLessonId().equals(id))
-                .findAny();
+        if (attendance.isEmpty()) {
+            System.out.println("Attendance not found");
+        }
+        return attendance;
     }
 
+    public Optional<Attendance> findAttendanceOfStudent(Long id) {
+        Optional<Attendance> attendance =  attendanceList.stream()
+                .filter(a -> a.getStudentId().equals(id))
+                .findAny();
+        if (attendance.isEmpty()) {
+            System.out.println("Attendance not found");
+        }
+        return attendance;
+    }
+    public Optional<Attendance> findAllAttendanceOfLesson(Long id) {
+        Optional<Attendance> attendance =  attendanceList.stream()
+                .filter(a -> a.getLessonId().equals(id))
+                .findAny();
+        if (attendance.isEmpty()) {
+            System.out.println("Attendance not found");
+        }
+        return attendance;
+    }
 }

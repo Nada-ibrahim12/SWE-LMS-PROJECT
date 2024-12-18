@@ -12,7 +12,6 @@ public class OTPService {
     public boolean validateOtp(Long courseId, Long lessonId, String otp) {
         String key = courseId + "-" + lessonId;
         String storedOtp = otpStorage.get(key);
-
         return storedOtp != null && storedOtp.equals(otp);
     }
 

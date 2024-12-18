@@ -37,5 +37,11 @@ public class LessonRepository {
                 .findFirst();
     }
 
+    public boolean existsByIdAndCourseId(Long lessonId, Long courseId) {
+        return lessonList.stream()
+                .anyMatch(lesson -> lesson.getId().equals(lessonId) && lesson.getCourse().getId().equals(courseId));
+    }
+
+
 }
 
