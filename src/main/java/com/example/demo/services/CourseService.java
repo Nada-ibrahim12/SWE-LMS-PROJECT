@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.Course;
@@ -39,6 +38,9 @@ public class CourseService {
         }
         return courseRepository.save(course);
     }
+    public Course saveCourse(Course course) {
+        return courseRepository.save(course);  
+    }
 
     public Course addLessonToCourse(Long courseId, Lesson lesson, String token) {
         if (!userService.hasRole(token, "Instructor")) {
@@ -66,22 +68,18 @@ public class CourseService {
         return courseRepository.findById(id);
     }
 
-    public List<user> viewEnrolledStudents(String token, Long courseId) {
-   
-        String username = jwtUtil.extractUsername(token);
-    
-        user currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-    
-        if (!currentUser.getRole().contains("ADMIN") && !currentUser.getRole().contains("INSTRUCTOR")) {
-            throw new AccessDeniedException("You are not authorized to view the enrolled students.");
+    public List<user> viewEnrolledStudents(Long courseId, String token) {
+        if (!userService.hasRole(token, "Instructor") || !userService.hasRole(token, "Admin")) {
+            throw new RuntimeException("Only instructors or admins can view enrolled students.");
         }
-   
+    
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with ID: " + courseId));
+    
         return new ArrayList<>(course.getEnrolledStudents());
     }
+    
+    
     
     public List<Course> viewAvailableCourses(String token) {
 
@@ -99,16 +97,18 @@ public class CourseService {
         if (!userService.hasRole(token, "Instructor")) {
             throw new RuntimeException("Only instructors can create a question bank.");
         }
-
-        // Find the course by its ID
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Associate the question bank with the course
         questionBank.setCourse(course);
-
-        // Save and return the new question bank
+       
         return questionBankRepository.save(questionBank);
+    }
+    public void addMediaToCourse(Long courseId, String fileUrl) {
+        
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+        course.getMediaFiles().add(fileUrl); 
+        courseRepository.save(course);
     }
 
 

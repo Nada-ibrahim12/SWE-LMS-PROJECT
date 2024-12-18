@@ -6,6 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,6 +42,17 @@ public class Course {
         inverseJoinColumns = @JoinColumn(name = "student_id")
     )
     private List<user> enrolledStudents = new ArrayList<>();
+
+     @ElementCollection
+    private List<String> mediaFiles;
+
+    public List<String> getMediaFiles() {
+        return mediaFiles;
+    }
+
+    public void setMediaFiles(List<String> mediaFiles) {
+        this.mediaFiles = mediaFiles;
+    }
 
     public Long getId() {
         return id;

@@ -1,10 +1,24 @@
 package com.example.demo.controller;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.Course;
 import com.example.demo.model.Lesson;
@@ -12,7 +26,10 @@ import com.example.demo.model.QuestionBank;
 import com.example.demo.model.user;
 import com.example.demo.services.CourseService;
 import com.example.demo.services.EnrollmentService;
+import com.example.demo.services.FileStorageService;
 import com.example.demo.services.UserService;
+
+import io.jsonwebtoken.io.IOException;
 
 @RestController
 @RequestMapping("/api")
@@ -26,6 +43,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     // ================================
     // AUTHENTICATION ENDPOINTS
@@ -210,31 +230,48 @@ public ResponseEntity<String> addLessonToCourse(@PathVariable Long courseId, @Re
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/instructor/{courseId}/enrolled")
-public ResponseEntity<List<user>> viewEnrolledStudents(@RequestHeader("Authorization") String authorizationHeader, 
-                                                        @PathVariable Long courseId) {
-    if (!isValidAuthorizationHeader(authorizationHeader)) {
-        return ResponseEntity.status(400).body(null); 
-    }
+    @GetMapping("/courses/{courseId}/enrolled")
+    public ResponseEntity<List<user>> viewEnrolled(@RequestHeader("Authorization") String authorizationHeader, 
+                                                            @PathVariable Long courseId) {
+        System.out.println("Authorization Header: " + authorizationHeader);
 
-    String token = authorizationHeader.replace("Bearer ", "");
-    try {
-        if (!userService.hasRole(token, "Instructor") && !userService.hasRole(token, "Admin")) {
-            return ResponseEntity.status(403).body(null); 
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
+            System.out.println("Invalid Authorization Header");
+            return ResponseEntity.status(400).body(null); 
+        } else {
+            String token = authorizationHeader.replace("Bearer ", "");
+            System.out.println("Extracted Token: " + token);
+    
+            try {
+                if (userService.hasRole(token, "Instructor")) {
+                    System.out.println("User is an Instructor");
+                    List<user> enrolledStudents = courseService.viewEnrolledStudents(courseId, token);
+                    
+                    if (enrolledStudents.isEmpty()) {
+                        return ResponseEntity.status(204).body(enrolledStudents); 
+                    } else {
+                        return ResponseEntity.ok(enrolledStudents);
+                    }
+                } else if (userService.hasRole(token, "Admin")) {
+                    System.out.println("User is an Admin");
+                    List<user> enrolledStudents = courseService.viewEnrolledStudents(courseId, token);
+
+                    if (enrolledStudents.isEmpty()) {
+                        return ResponseEntity.status(204).body(enrolledStudents); 
+                    } else {
+                        return ResponseEntity.ok(enrolledStudents);
+                    }
+                } else {
+                    System.out.println("User does not have the required role");
+                    return ResponseEntity.status(403).body(null); 
+                }
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                return ResponseEntity.status(400).body(null);
+            }
         }
-        List<user> enrolledStudents = courseService.viewEnrolledStudents(token, courseId);
-        if (enrolledStudents.isEmpty()) {
-            return ResponseEntity.status(204).body(enrolledStudents); 
-        }
-        return ResponseEntity.ok(enrolledStudents);
-
-    } catch (RuntimeException e) {
-       
-        return ResponseEntity.status(400).body(null);
     }
-}
-
-
+    
 @GetMapping("/courses/available")
 public ResponseEntity<List<Course>> viewAvailableCourses(@RequestHeader("Authorization") String authorizationHeader) {
     if (!isValidAuthorizationHeader(authorizationHeader)) {
@@ -253,6 +290,57 @@ public ResponseEntity<List<Course>> viewAvailableCourses(@RequestHeader("Authori
     return ResponseEntity.status(403).body(null);
 }
 
+@PostMapping("/instructor/{courseId}/upload-media")
+public ResponseEntity<String> uploadMediaFile(@RequestHeader("Authorization") String authorizationHeader,
+                                              @PathVariable Long courseId,
+                                              @RequestParam("file") MultipartFile file) throws IOException, java.io.IOException {
+    String token = extractToken(authorizationHeader);
+
+    try {
+        if (!userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.status(403).body("Access Denied: Only instructors can upload media files.");
+        }
+        Course course = courseService.getCourseById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with ID: " + courseId));
+
+        if (file.isEmpty()) {
+            return ResponseEntity.status(400).body("Please select a file to upload.");
+        }
+        String baseDirectory = System.getProperty("user.dir"); 
+        String uploadDirectory = baseDirectory + "/uploads/media/" + courseId + "/"; 
+        File directory = new File(uploadDirectory);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        Path path = Paths.get(uploadDirectory + file.getOriginalFilename());
+
+        try {
+            Files.write(path, file.getBytes());
+            if (course.getMediaFiles() == null) {
+                course.setMediaFiles(new ArrayList<>());
+            }
+            course.getMediaFiles().add(file.getOriginalFilename()); 
+            courseService.saveCourse(course);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(500)
+                    .body("Failed to save file: " + e.getMessage());
+        }
+        return ResponseEntity.status(200).body("File successfully uploaded for Course ID " 
+                + courseId + ": " + file.getOriginalFilename());
+
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(404).body(e.getMessage());
+    }
+}
+private String extractToken(String authorizationHeader) {
+    if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+        return authorizationHeader.replace("Bearer ", "");
+    } else {
+        throw new IllegalArgumentException("Invalid Authorization header");
+    }
+}
+
 
     // ================================
     // Helper Methods
@@ -261,27 +349,5 @@ public ResponseEntity<List<Course>> viewAvailableCourses(@RequestHeader("Authori
     private boolean isValidAuthorizationHeader(String authorizationHeader) {
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
     }
-    // ================================
-    // PROFILE MANAGEMENT
-    // ================================
-
-    @GetMapping("/profile")
-    public ResponseEntity<user> viewProfile(@RequestHeader("Authorization") String authorizationHeader) {
-        if (!isValidAuthorizationHeader(authorizationHeader)) {
-            return ResponseEntity.status(400).body(null);
-        }
-        String token = authorizationHeader.replace("Bearer ", "");
-        return ResponseEntity.ok(userService.getUserProfile(token));
-    }
-
-    @PutMapping("/profile")
-    public ResponseEntity<String> updateProfile(@RequestHeader("Authorization") String authorizationHeader,
-                                                @RequestBody user updatedProfile) {
-        if (!isValidAuthorizationHeader(authorizationHeader)) {
-            return ResponseEntity.status(400).body("Missing or invalid Authorization header");
-        }
-        String token = authorizationHeader.replace("Bearer ", "");
-        userService.updateUserProfile(token, updatedProfile);
-        return ResponseEntity.ok("Profile updated successfully");
-    }
+ 
 }
