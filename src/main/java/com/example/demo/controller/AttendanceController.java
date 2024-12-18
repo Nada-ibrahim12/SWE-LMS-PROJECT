@@ -58,7 +58,7 @@ public class AttendanceController {
         }
     }
 
-    @PostMapping("/instructor/{courseId}/{lessonId}/generate-otp")
+    @PostMapping("/instructor/generate-otp")
     public ResponseEntity<String> generateOtp(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam Long courseId,
@@ -92,10 +92,10 @@ public class AttendanceController {
         }
     }
 
-    @GetMapping("/instructor/id")
+    @GetMapping("/instructor/attendance/{id}")
     public ResponseEntity<Optional<Attendance>> getAttendanceById(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam Long id) {
+            @PathVariable Long id) {
         try {
             String token = extractToken(authorizationHeader);
             if (userService.hasRole(token, "Instructor")) {
@@ -107,7 +107,7 @@ public class AttendanceController {
         }
     }
 
-    @GetMapping("/instructor/status/{status}")
+    @GetMapping("/instructor/attendance/{status}")
     public ResponseEntity<Optional<Attendance>> getByAttendanceStatus(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Boolean status) {
