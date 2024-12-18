@@ -10,13 +10,15 @@ import java.time.LocalDateTime;
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(nullable = false)
     private String message;
 
     @Column(name = "user_id", nullable = false)
-    private long userId;
+    private String userId;
+
+    private String role;
 
     @Column(name = "is_read", nullable = false)
     private boolean isRead;
@@ -25,19 +27,20 @@ public class Notification {
 
     public Notification() {}
 
-    public Notification(Long id,String message, long userId, boolean isRead, LocalDateTime timestamp) {
+    public Notification(String id,String message, String userId, String role, boolean isRead, LocalDateTime timestamp) {
         this.id = id;
         this.message = message;
         this.userId = userId;
-        this.isRead = isRead;
+        this.role = role;
+        this.isRead = false;
         this.timestamp = timestamp;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -49,11 +52,11 @@ public class Notification {
         this.message = message;
     }
 
-    public long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
@@ -69,5 +72,12 @@ public class Notification {
     }
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

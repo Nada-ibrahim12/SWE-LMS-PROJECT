@@ -1,18 +1,21 @@
 package com.example.demo.services;
 
-import java.util.Random;
+import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@Service
 public class OTPService {
+    private final Map<String, String> otpStorage = new HashMap<>();
 
-    public String generateOTP() {
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder otp = new StringBuilder();
-        Random random = new Random();
+    public boolean validateOtp(Long courseId, Long lessonId, String otp) {
+        String key = courseId + "-" + lessonId;
+        String storedOtp = otpStorage.get(key);
+        return storedOtp != null && storedOtp.equals(otp);
+    }
 
-        for (int i = 0; i <= 5; i++) {
-            int index = random.nextInt(characters.length());
-            otp.append(characters.charAt(index));
-        }
-        return otp.toString();
+    public void generateOtp(Long courseId, Long lessonId, String otp) {
+        otpStorage.put(courseId + "-" + lessonId, otp);
     }
 }
