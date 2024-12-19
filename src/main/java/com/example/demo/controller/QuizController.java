@@ -113,7 +113,7 @@ public class QuizController {
                 submission.setStudentId(studentId);
                 String email = userService.getUserFromToken(token).getEmail();
                 String message = "Quiz submitted successfully and graded\n";
-                notificationService.sendNotification(studentId, "Student", message, email, false);
+                notificationService.sendNotification(studentId, "Student", message, email, true);
                 return ResponseEntity.ok("Quiz submitted successfully and graded");
             }
         } catch (Exception e) {

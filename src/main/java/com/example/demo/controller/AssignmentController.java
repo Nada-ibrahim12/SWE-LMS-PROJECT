@@ -60,7 +60,7 @@ public class AssignmentController {
                     assignmentService.submitAssignmentWithFile(assignment, file);
                     String message = "Assignment with Title: " + assignment.getTitle() + "submitted successfully";
                     notificationService.sendNotification(id, "Student", message
-                                                         , email, false);
+                                                         , email, true);
                     return ResponseEntity.ok("Assignment submitted successfully");
                 } catch (Exception e) {
                     return ResponseEntity.status(400).body("Failed to submit assignment: " + e.getMessage());
@@ -102,7 +102,7 @@ public class AssignmentController {
 
                 String email = userService.getUserById(studentId).getEmail();
                 String message = "Assignment with Title: " + assignment.get().getTitle() + " graded successfully\n Grade: " + feedback;
-                notificationService.sendNotification(studentId, "Student", message, email, false);
+                notificationService.sendNotification(studentId, "Student", message, email, true);
 
                 return ResponseEntity.ok(assignment.get());
             }
@@ -127,7 +127,7 @@ public class AssignmentController {
                     assignmentService.createAssignment(courseId, assignment);
                     String message = "Assignment with Title: " + assignment.getTitle() + "assigned successfully";
                     notificationService.sendNotification(id, "Instructor", message
-                            , email, false);
+                            , email, true);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
