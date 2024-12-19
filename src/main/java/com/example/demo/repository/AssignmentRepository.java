@@ -11,6 +11,7 @@ import java.util.Optional;
 public class AssignmentRepository {
 
     public List<Assignment> assignments = new ArrayList<>();
+    public List<Assignment> submissions = new ArrayList<>();
 
     public List<Assignment> findAll(){
         return assignments;
@@ -36,6 +37,11 @@ public class AssignmentRepository {
     public void deleteById(Long id){
         Optional<Assignment> assignment = findById(id);
         assignments.remove(assignment);
+    }
+
+    public Assignment saveSubmissions(Assignment assignment){
+        submissions.add(assignment);
+        return assignment;
     }
 
 }

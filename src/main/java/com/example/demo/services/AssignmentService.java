@@ -1,7 +1,9 @@
 package com.example.demo.services;
 
 import com.example.demo.model.Assignment;
+import com.example.demo.model.Course;
 import com.example.demo.repository.AssignmentRepository;
+import com.example.demo.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +19,8 @@ public class AssignmentService {
 
     @Autowired
     private AssignmentRepository assignmentRepository;
+    @Autowired
+    private CourseRepository courseRepository;
 
     public void submitAssignmentWithFile(Assignment assignment, MultipartFile file) throws Exception {
         if (file.isEmpty()) {
@@ -33,7 +37,7 @@ public class AssignmentService {
         Files.copy(file.getInputStream(), Paths.get(filePath));
 
         assignment.setUploadedFilePath(filePath);
-        assignmentRepository.save(assignment);
+        assignmentRepository.saveSubmissions(assignment);
     }
 
     public Optional<Assignment> getAssignmentById(Long id) {
@@ -44,6 +48,12 @@ public class AssignmentService {
         Optional<Assignment> assignment = getAssignmentById(id);
         assignment.get().setStatus("Graded");
         assignmentRepository.save(assignment.orElse(null));
+    }
+    public void createAssignment(Long courseId,Assignment assignment) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+        assignment.setCourse(course);
+        assignmentRepository.save(assignment);
     }
 }
 

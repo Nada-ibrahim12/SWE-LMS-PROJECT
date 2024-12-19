@@ -14,6 +14,11 @@ public class Assignment {
     private String status;
     private String filePath;
     private String studentId;
+//    private Long courseId;
+
+    @ManyToOne
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
 
 //    @ManyToOne
@@ -60,6 +65,12 @@ public class Assignment {
     public void setStudentId(String studentId) {
         this.studentId = studentId;
     }
+    public Course getCourse() {
+        return course;
+    }
 
+    public void setCourse(Course course) {
+        this.course = course;
+    }
 
 }
