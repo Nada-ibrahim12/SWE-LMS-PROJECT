@@ -16,7 +16,7 @@ public class StudentRepository {
     }
 
     // Find a student by ID
-    public Student findById(Long id) {
+    public Student findById(String id) {
         for (Student student : studentList) {
             if (student.getUserId() != null && student.getUserId().equals(id)) {
                 return student;

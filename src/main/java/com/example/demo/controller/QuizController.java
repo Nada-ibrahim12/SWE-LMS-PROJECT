@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import java.util.List;
 
+import com.example.demo.model.QuizSubmission;
+import com.example.demo.services.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,8 @@ public class QuizController {
     private QuizService quizService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private NotificationService notificationService;
 
     private String extractToken(String authorizationHeader) {
         if (isValidAuthorizationHeader(authorizationHeader)) {
@@ -80,6 +84,44 @@ public class QuizController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
+    @GetMapping("/student/take-quiz/{id}")
+    public ResponseEntity<Quiz> takeQuiz(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Long id) {
+        String token = extractToken(authorizationHeader);
+        if (userService.hasRole(token, "Student")) {
+            Quiz quiz = quizService.getQuizById(id);
+            if (quiz != null) {
+                return ResponseEntity.ok(quiz);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @PostMapping("/student/submit-quiz/{id}")
+    public ResponseEntity<String> submitQuiz(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Long id,
+            @RequestBody QuizSubmission submission) {
+        try {
+            String token = extractToken(authorizationHeader);
+            if (userService.hasRole(token, "Student")) {
+                String studentId = userService.getUserFromToken(token).getUserId();
+                submission.setStudentId(studentId);
+                String email = userService.getUserFromToken(token).getEmail();
+                String message = "Quiz submitted successfully and graded\n";
+                notificationService.sendNotification(studentId, "Student", message, email, false);
+                return ResponseEntity.ok("Quiz submitted successfully and graded");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to submit quiz: " + e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
 
     @DeleteMapping("/instructor/delete-guiz/{id}")
     public ResponseEntity<Void> deleteQuiz(@RequestHeader("Authorization") String authorizationHeader,
