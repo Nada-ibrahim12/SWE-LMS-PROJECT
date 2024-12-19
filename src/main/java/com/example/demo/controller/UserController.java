@@ -20,18 +20,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.demo.model.Assignment;
 import com.example.demo.model.Course;
 import com.example.demo.model.Lesson;
 import com.example.demo.model.QuestionBank;
 import com.example.demo.model.user;
-import com.example.demo.services.AssignmentService;
 import com.example.demo.services.CourseService;
 import com.example.demo.services.EnrollmentService;
 import com.example.demo.services.FileStorageService;
 import com.example.demo.services.UserService;
-import com.example.demo.model.PerformanceRecord;
-import com.example.demo.services.PerformanceTrackingService;
 
 import io.jsonwebtoken.io.IOException;
 
@@ -50,12 +46,6 @@ public class UserController {
 
     @Autowired
     private FileStorageService fileStorageService;
-
-    @Autowired
-    private AssignmentService assignmentService;
-
-    @Autowired
-    private PerformanceTrackingService performanceTrackingService;
 
     // ================================
     // AUTHENTICATION ENDPOINTS
@@ -205,43 +195,7 @@ public ResponseEntity<String> addLessonToCourse(@PathVariable Long courseId, @Re
         }
         return ResponseEntity.status(403).body(null);
     }
-    @PostMapping("/instructor/create-assignment")
-    public ResponseEntity<Assignment> createAssignment(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody Assignment assignment) {
-        try {
-            String token = extractToken(authorizationHeader);
-            if (userService.hasRole(token, "Instructor")) {
-                
-                assignment = assignmentService.createAssignment(
-                    assignment.getTitle(), assignment.getCourseId());
-                return ResponseEntity.ok(assignment);
-            }
-            return ResponseEntity.status(403).build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).build(); 
-        }
-    }
 
-    // @GetMapping("/instructor/progressAssignment/{courseId}/{studentId}")
-    // public ResponseEntity<List<Assignment>> getStudentProgress(
-    //         @RequestHeader("Authorization") String authorizationHeader,
-    //         @PathVariable Long courseId,  
-    //         @PathVariable Long studentId) {  
-    //             if (studentId == null || courseId == null) {
-    //                 return ResponseEntity.badRequest().body(null);
-    //             }
-    //     try {
-    //         String token = extractToken(authorizationHeader);
-    //         if (userService.hasRole(token, "Instructor")) {
-    //             List<Assignment> assignments = assignmentService.getAssignmentsByStudentId(courseId, studentId);
-    //             return ResponseEntity.ok(assignments);
-    //         }
-    //         return ResponseEntity.status(403).body(null);
-    //     } catch (IllegalArgumentException e) {
-    //         return ResponseEntity.status(400).body(null);
-    //     }
-    // }
     // ================================
     // STUDENT ENDPOINTS
     // ================================
@@ -395,64 +349,5 @@ private String extractToken(String authorizationHeader) {
     private boolean isValidAuthorizationHeader(String authorizationHeader) {
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
     }
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-// @GetMapping("/instructor/quiztrack/{studentId}")
-// public ResponseEntity<List<PerformanceRecord>> getQuizScores(@RequestHeader("Authorization") String authorizationHeader,
-//                                                               @PathVariable String studentId) {
-//     // Check if the user is an instructor
-//     String token = authorizationHeader.replace("Bearer ", "");
-//     if (!userService.hasRole(token, "Instructor")) {
-//         return ResponseEntity.status(403).body(null);
-//     }
-
-//     List<PerformanceRecord> records = performanceTrackingService.trackQuizScoresByStudentId(studentId);
-//     return ResponseEntity.ok(records);
-// }
-// @GetMapping("/instructor/assignmenttrack/{studentId}")
-// public ResponseEntity<List<PerformanceRecord>> getAssignmentScores(@RequestHeader("Authorization") String authorizationHeader,
-//                                                                    @PathVariable String studentId) {
-
-//     // Check if the user has the "Instructor" role
-//     String token = authorizationHeader.replace("Bearer ", "");
-//     if (!userService.hasRole(token, "Instructor")) {
-//         return ResponseEntity.status(403).body(null);
-//     }
-
-//     List<PerformanceRecord> records = performanceTrackingService.trackAssignmentSubmissions(studentId);
-//     return ResponseEntity.ok(records);
-// }
-// @GetMapping("/instructor/attendance/{studentId}")
-// public ResponseEntity<List<PerformanceRecord>> getAttendance(@RequestHeader("Authorization") String authorizationHeader,
-//                                                              @PathVariable String studentId) {
-
-//     // Check if the user has the "Instructor" role
-//     String token = authorizationHeader.replace("Bearer ", "");
-//     if (!userService.hasRole(token, "Instructor")) {
-//         return ResponseEntity.status(403).body(null);
-//     }
-
-//     List<PerformanceRecord> records = performanceTrackingService.trackAttendance(studentId);
-//     return ResponseEntity.ok(records);
-// }
-// @GetMapping("/instructor/report/{studentId}")
-// public ResponseEntity<List<PerformanceRecord>> getProgressReport(@RequestHeader("Authorization") String authorizationHeader,
-//                                                                 @PathVariable String studentId) {
-
-//     // Check if the user has the "Instructor" role
-//     String token = authorizationHeader.replace("Bearer ", "");
-//     if (!userService.hasRole(token, "Instructor")) {
-//         return ResponseEntity.status(403).body(null);
-        
-//     }
-
-//     List<PerformanceRecord> records = performanceTrackingService.getProgressReport(studentId);
-//     return ResponseEntity.ok(records);
-// }
-
-
-
  
 }
