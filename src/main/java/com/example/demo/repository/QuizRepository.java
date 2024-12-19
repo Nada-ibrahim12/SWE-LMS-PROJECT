@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.Quiz;
+import com.example.demo.model.QuizSubmission;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.List;
 public class QuizRepository {
 
     public List<Quiz> quizzes = new ArrayList<>();
+    public List<QuizSubmission> submissions = new ArrayList<>();
 
     public List<Quiz> findAll(){
         return quizzes;
@@ -24,6 +26,10 @@ public class QuizRepository {
     }
     public Quiz save(Quiz quiz){
         quizzes.add(quiz);
+        return quiz;
+    }
+    public QuizSubmission saveSubmissions(QuizSubmission quiz){
+        submissions.add(quiz);
         return quiz;
     }
     public Quiz update(Quiz quiz){

@@ -15,12 +15,27 @@ public class UserRepository {
     private final List<user> userList = new ArrayList<>();
     private long userIdCounter = 2;
 
+
     public user save(user user) {
-        if (user.getUserId() == null) {
-            user.setUserId(String.valueOf(userIdCounter++));
+        Optional<user> existingUser = userList.stream()
+                .filter(u -> u.getUserId().equals(user.getUserId()))
+                .findFirst();
+
+        if (existingUser.isPresent()) {
+            // Update existing user
+            user existing = existingUser.get();
+            existing.setUsername(user.getUsername());
+            existing.setPassword(user.getPassword());
+            existing.setRole(user.getRole());
+            existing.setLoggedIn(user.isLoggedIn());
+            return existing;
+        } else {
+            if (user.getUserId() == null) {
+                user.setUserId(String.valueOf(userIdCounter++));
+            }
+            userList.add(user);
+            return user;
         }
-        userList.add(user);
-        return user;
     }
     public Optional<user> findByUsername(String username) {
         return userList.stream()

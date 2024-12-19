@@ -9,15 +9,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.Course;
@@ -349,5 +341,30 @@ private String extractToken(String authorizationHeader) {
     private boolean isValidAuthorizationHeader(String authorizationHeader) {
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
     }
- 
+    @GetMapping("/profile")
+    public ResponseEntity<user> viewProfile(@RequestHeader("Authorization") String authorizationHeader) {
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
+            return ResponseEntity.status(400).body(null);
+        }
+        String token = authorizationHeader.replace("Bearer ", "");
+        return ResponseEntity.ok(userService.getUserProfile(token));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<String> updateProfile(@RequestHeader("Authorization") String authorizationHeader,
+                                                @RequestBody user updatedProfile) {
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
+            return ResponseEntity.status(400).body("Missing or invalid Authorization header");
+        }
+
+        try {
+            String token = authorizationHeader.replace("Bearer ", "");
+            userService.updateUserProfile(token, updatedProfile);
+            return ResponseEntity.ok("Profile updated successfully. Please log in again.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("An unexpected error occurred");
+        }
+    }
 }

@@ -40,9 +40,11 @@ public class AssignmentController {
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
     }
 
-    @PostMapping("/submit")
+    @PostMapping("/{course-id}/{assignemt-id}/submit")
     public ResponseEntity<String> submitAssignment(
             @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable long assignmentId,
+            @PathVariable long courseId,
             @RequestParam("assignment") String assignmentData,
             @RequestParam("file") MultipartFile file) {
 
@@ -58,7 +60,7 @@ public class AssignmentController {
                     assignmentService.submitAssignmentWithFile(assignment, file);
                     String message = "Assignment with Title: " + assignment.getTitle() + "submitted successfully";
                     notificationService.sendNotification(id, "Student", message
-                                                         , email, false);
+                                                         , email, true);
                     return ResponseEntity.ok("Assignment submitted successfully");
                 } catch (Exception e) {
                     return ResponseEntity.status(400).body("Failed to submit assignment: " + e.getMessage());
@@ -86,10 +88,10 @@ public class AssignmentController {
         }
     }
 
-    @PutMapping("/grade")
+    @PutMapping("/{assignment-id}/grade")
     public ResponseEntity<Assignment> gradeAssignment(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam("quiz-id") Long id,
+            @PathVariable Long id,
             @RequestBody String feedback) {
         try {
             String token = extractToken(authorizationHeader);
@@ -100,7 +102,7 @@ public class AssignmentController {
 
                 String email = userService.getUserById(studentId).getEmail();
                 String message = "Assignment with Title: " + assignment.get().getTitle() + " graded successfully\n Grade: " + feedback;
-                notificationService.sendNotification(studentId, "Instructor", message, email, false);
+                notificationService.sendNotification(studentId, "Student", message, email, true);
 
                 return ResponseEntity.ok(assignment.get());
             }
@@ -111,5 +113,25 @@ public class AssignmentController {
         return ResponseEntity.status(403).build();
     }
 
+    @PostMapping("/{course-id}/create-assignment")
+    public void createAssignment(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Long courseId,
+            @RequestParam("assignment") Assignment assignment
+            ) {
+        try {
+            String token = extractToken(authorizationHeader);
+            if (userService.hasRole(token, "Instructor")) {
+                    String id = userService.getUserFromToken(token).getUserId();
+                    String email = userService.getUserFromToken(token).getEmail();
+                    assignmentService.createAssignment(courseId, assignment);
+                    String message = "Assignment with Title: " + assignment.getTitle() + "assigned successfully";
+                    notificationService.sendNotification(id, "Instructor", message
+                            , email, true);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
 
