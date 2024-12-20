@@ -1,9 +1,13 @@
 package com.example.demo.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
 public class Answer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -11,12 +15,14 @@ public class Answer {
     private Long questionId;
     private String answer;  // Student's answer
 
-    public Answer() {}
+    public Answer() {
+    }
 
     public Answer(Long studentId, Long questionId, String answer) {
         this.studentId = studentId;
         this.questionId = questionId;
         this.answer = answer;
+
     }
 
     public Long getId() {
@@ -51,4 +57,3 @@ public class Answer {
         this.answer = answer;
     }
 }
-

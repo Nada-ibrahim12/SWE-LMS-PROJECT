@@ -33,8 +33,8 @@ public class AttendanceRepository {
     }
 
     public Optional<Attendance> findByAttend(Boolean attend) {
-        Optional<Attendance> attendance =  attendanceList.stream()
-                .filter(a -> a.isAttend(attend))
+        Optional<Attendance> attendance = attendanceList.stream()
+                .filter(a -> a.isAttend())
                 .findAny();
         if (attendance.isEmpty()) {
             System.out.println("Attendance not found");
@@ -43,7 +43,7 @@ public class AttendanceRepository {
     }
 
     public Optional<Attendance> findAttendanceOfStudent(Long id) {
-        Optional<Attendance> attendance =  attendanceList.stream()
+        Optional<Attendance> attendance = attendanceList.stream()
                 .filter(a -> a.getStudentId().equals(id))
                 .findAny();
         if (attendance.isEmpty()) {
@@ -51,8 +51,9 @@ public class AttendanceRepository {
         }
         return attendance;
     }
+
     public Optional<Attendance> findAllAttendanceOfLesson(Long id) {
-        Optional<Attendance> attendance =  attendanceList.stream()
+        Optional<Attendance> attendance = attendanceList.stream()
                 .filter(a -> a.getLessonId().equals(id))
                 .findAny();
         if (attendance.isEmpty()) {

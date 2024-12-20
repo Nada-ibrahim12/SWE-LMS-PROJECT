@@ -1,4 +1,5 @@
 package com.example.demo.services;
+
 import com.example.demo.dto.AttendanceRequest;
 import com.example.demo.model.Attendance;
 import com.example.demo.repository.AttendanceRepository;
@@ -30,7 +31,7 @@ public class AttendanceService {
         attendance.setStudentId(request.getStudentId());
         attendance.setCourseId(request.getCourseId());
         attendance.setLessonId(request.getLessonId());
-        attendance.isAttend(true);
+        attendance.SetIsAttend(true);
         attendance.setTimestamp(LocalDateTime.now());
 
         attendanceRepository.save(attendance);
@@ -38,19 +39,22 @@ public class AttendanceService {
         return true;
     }
 
-
     public List<Attendance> findAll() {
         return attendanceRepository.findAll();
     }
+
     public Optional<Attendance> findById(Long id) {
         return attendanceRepository.findById(id);
     }
+
     public Optional<Attendance> findByStatus(Boolean status) {
         return attendanceRepository.findByAttend(status);
     }
+
     public Optional<Attendance> findAttendanceOfStudent(Long id) {
         return attendanceRepository.findAttendanceOfStudent(id);
     }
+
     public Optional<Attendance> findAllAttendanceOfLesson(Long id) {
         return attendanceRepository.findAllAttendanceOfLesson(id);
     }
@@ -60,20 +64,29 @@ public class AttendanceService {
 //    public void deleteById(Long id) {
 //        attendanceRepository.deleteById(id);
 //    }
-public String generateOTP() {
-    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    StringBuilder otp = new StringBuilder();
-    Random random = new Random();
 
-    for (int i = 0; i <= 5; i++) {
-        int index = random.nextInt(characters.length());
-        otp.append(characters.charAt(index));
+    public String generateOTP() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder otp = new StringBuilder();
+        Random random = new Random();
+
+        for (int i = 0; i <= 5; i++) {
+            int index = random.nextInt(characters.length());
+            otp.append(characters.charAt(index));
+        }
+        return otp.toString();
     }
-    return otp.toString();
-}
+
     public String generateAndStoreOtp(Long courseid, Long lessonid) {
         String otp = generateOTP();
         otpService.generateOtp(courseid, lessonid, otp);
         return otp;
     }
 }
+
+    
+    
+    
+    
+                                                                                
+    
