@@ -90,8 +90,6 @@ public class Assignment {
         return grade;
     }
 
-    public void setGrade(double grade) {
-        this.grade = grade;
-    }
+    
 
 }
