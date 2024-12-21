@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.model.AssignmentRecord;
 import com.example.demo.model.PerformanceRecord;
 import com.example.demo.services.PerformanceTrackingService;
 
@@ -35,20 +36,31 @@ public class PerformanceTrackingController {
     }
 
     @GetMapping("/instructor/{instructorId}/course/{courseId}/student/{studentId}/assignments")
-    public ResponseEntity<List<PerformanceRecord>> getAssignments(@PathVariable String instructorId,
+    public ResponseEntity<List<AssignmentRecord>> getAssignments(@PathVariable String instructorId,
             @PathVariable Long courseId,
             @PathVariable String studentId) {
-        List<PerformanceRecord> performanceRecords = performanceTrackingService
+        List<AssignmentRecord> performanceRecords = performanceTrackingService
                 .trackAssignmentsByStudentId(instructorId, courseId, studentId);
         return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
 
     }
 
-    // @GetMapping("getAssignmentsScores/{studentId}/")
-    // public ResponseEntity<List<PerformanceRecord>> getAssignmentsScores(@PathVariable("studentId") String studentId) {
-    //     List<PerformanceRecord> performanceRecords = performanceTrackingService.trackAssignmentScoresByStudentId(studentId);
-    //     return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
-    // }
+    @GetMapping("/instructor/{instructorId}/course/{courseId}/getAllStudentsQuizzes")
+    public ResponseEntity<List<PerformanceRecord>> getAllStudentsQuizzes(@PathVariable String instructorId, @PathVariable Long courseId) {
+        List<PerformanceRecord> performanceRecords = performanceTrackingService
+                .trackQuizScoresForAllStudentsWithNames(instructorId, courseId);
+        return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
+
+    }
+
+    @GetMapping("/instructor/{instructorId}/course/{courseId}/getAllStudentsAssignments")
+    public ResponseEntity<List<AssignmentRecord>> getAllStudentsAssignments(@PathVariable String instructorId, @PathVariable Long courseId) {
+        List<AssignmentRecord> performanceRecords = performanceTrackingService
+                .trackAssignmentsForAllStudentsWithNames(instructorId, courseId);
+        return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
+
+    }
+
 }
 
 // public class PerformanceTrackingController {

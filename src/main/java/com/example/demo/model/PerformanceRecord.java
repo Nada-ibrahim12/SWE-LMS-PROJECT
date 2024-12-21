@@ -5,6 +5,7 @@ public class PerformanceRecord {
     private String Type; //"Quiz", "Assignment", "Attendance"
     private String description;
     private double scoreOrStatus; // Score for quizzes/assignments, Status for attendance.
+    private String StudentName;
 
     public PerformanceRecord() {
     }
@@ -44,6 +45,14 @@ public class PerformanceRecord {
 
     public double getScoreOrStatus() {
         return this.scoreOrStatus;
+    }
+
+    public void setStudentName(String Name) {
+        this.StudentName = Name;
+    }
+
+    public String getStudentName() {
+        return this.StudentName;
     }
 
     public void setScoreOrStatus(double scoreOrStatus) {
