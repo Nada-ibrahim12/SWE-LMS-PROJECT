@@ -21,11 +21,6 @@ public class PerformanceTrackingController {
     @Autowired
     private PerformanceTrackingService performanceTrackingService;
 
-    // @GetMapping("/getQuizScores/{studentId}/")
-    // public ResponseEntity<List<PerformanceRecord>> getQuizScores(@PathVariable("studentId") String studentId) {
-    //     List<PerformanceRecord> performanceRecords = performanceTrackingService.trackQuizScoresByStudentId(studentId);
-    //     return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
-    // }
     @GetMapping("/instructor/{instructorId}/course/{courseId}/student/{studentId}/quiz-scores")
     public ResponseEntity<List<PerformanceRecord>> getQuizScores(@PathVariable String instructorId,
             @PathVariable Long courseId,

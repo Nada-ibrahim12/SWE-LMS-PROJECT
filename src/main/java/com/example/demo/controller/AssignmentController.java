@@ -1,16 +1,24 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Assignment;
-import com.example.demo.services.NotificationService;
-import com.example.demo.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.example.demo.services.AssignmentService;
-
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.example.demo.model.Assignment;
+import com.example.demo.services.AssignmentService;
+import com.example.demo.services.NotificationService;
+import com.example.demo.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
@@ -59,8 +67,8 @@ public class AssignmentController {
                     assignment.setStudentId(id);
                     assignmentService.submitAssignmentWithFile(assignment, file);
                     String message = "Assignment with Title: " + assignment.getTitle() + "submitted successfully";
-                    notificationService.sendNotification(id, "Student", message
-                                                         , email, true);
+                    notificationService.sendNotification(id, "Student", message,
+                             email, true);
                     return ResponseEntity.ok("Assignment submitted successfully");
                 } catch (Exception e) {
                     return ResponseEntity.status(400).body("Failed to submit assignment: " + e.getMessage());
@@ -118,20 +126,19 @@ public class AssignmentController {
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long courseId,
             @RequestParam("assignment") Assignment assignment
-            ) {
+    ) {
         try {
             String token = extractToken(authorizationHeader);
             if (userService.hasRole(token, "Instructor")) {
-                    String id = userService.getUserFromToken(token).getUserId();
-                    String email = userService.getUserFromToken(token).getEmail();
-                    assignmentService.createAssignment(courseId, assignment);
-                    String message = "Assignment with Title: " + assignment.getTitle() + "assigned successfully";
-                    notificationService.sendNotification(id, "Instructor", message
-                            , email, true);
+                String id = userService.getUserFromToken(token).getUserId();
+                String email = userService.getUserFromToken(token).getEmail();
+                assignmentService.createAssignment(courseId, assignment);
+                String message = "Assignment with Title: " + assignment.getTitle() + "assigned successfully";
+                notificationService.sendNotification(id, "Instructor", message,
+                         email, true);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 }
-

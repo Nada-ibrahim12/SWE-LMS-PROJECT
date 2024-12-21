@@ -1,9 +1,13 @@
 package com.example.demo.services;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.poi.sl.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +22,8 @@ import com.example.demo.repository.AssignmentRepository;
 import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.QuizRepository;
 import com.example.demo.repository.StudentRepository;
+
+import io.micrometer.core.instrument.MultiGauge.Row;
 
 @Service
 public class PerformanceTrackingService {
@@ -161,6 +167,65 @@ public class PerformanceTrackingService {
         return records;
     }
 
+    public byte[] generateQuizScoresExcel(String instructorId, Long courseId) throws Exception {
+        List<PerformanceRecord> quizRecords = trackQuizScoresForAllStudentsWithNames(instructorId, courseId);
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Quiz Scores");
+            Row headerRow = sheet.createRow(0);
+
+            // Headers
+            headerRow.createCell(0).setCellValue("Student Name");
+            headerRow.createCell(1).setCellValue("Quiz Description");
+            headerRow.createCell(2).setCellValue("Score");
+
+            // Populate rows
+            int rowNum = 1;
+            for (PerformanceRecord record : quizRecords) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(record.getStudentName());
+                row.createCell(1).setCellValue(record.getDescription());
+                row.createCell(2).setCellValue(record.getScoreOrStatus());
+            }
+
+            // Convert to byte array
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                workbook.write(outputStream);
+                return outputStream.toByteArray();
+            }
+        }
+    }
+
+    // Generate Excel for Assignment Records
+    public byte[] generateAssignmentRecordsExcel(String instructorId, Long courseId) throws Exception {
+        List<AssignmentRecord> assignmentRecords = trackAssignmentsForAllStudentsWithNames(instructorId, courseId);
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = (Sheet) workbook.createSheet("Assignment Records");
+            Row headerRow = sheet.createRow(0);
+
+            // Headers
+            headerRow.createCell(0).setCellValue("Student Name");
+            headerRow.createCell(1).setCellValue("Assignment Title");
+            headerRow.createCell(2).setCellValue("Score/Status");
+
+            // Populate rows
+            int rowNum = 1;
+            for (AssignmentRecord record : assignmentRecords) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(record.getStudentName());
+                row.createCell(1).setCellValue(record.getTitle());
+                row.createCell(2).setCellValue(record.getScoreOrStatus());
+            }
+
+            // Convert to byte array
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                workbook.write(outputStream);
+                return outputStream.toByteArray();
+            }
+        }
+
+    }
 }
 
 // Track assignment scores for a student in a specific course by instructor
