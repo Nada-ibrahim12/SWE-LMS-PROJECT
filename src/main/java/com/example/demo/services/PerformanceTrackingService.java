@@ -2,13 +2,14 @@ package com.example.demo.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import com.example.demo.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.model.PerformanceRecord;
-import com.example.demo.model.QuizSubmission;
 import com.example.demo.repository.AssignmentRepository;
+import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.QuizRepository;
 import com.example.demo.repository.StudentRepository;
 
@@ -21,36 +22,191 @@ public class PerformanceTrackingService {
     private AssignmentRepository assignmentRepository;
     @Autowired
     private QuizRepository quizRepository;
+    @Autowired
+    private CourseRepository courseRepository;
 
-    public List<PerformanceRecord> trackQuizScoresByStudentId(String studentId) {
-
+    // Track quiz scores for a student in a specific course by instructor
+    public List<PerformanceRecord> trackQuizScoresByStudentId(String instructorId, Long courseId, String studentId) {
         List<PerformanceRecord> records = new ArrayList<>();
-        List<QuizSubmission> submissions = quizRepository.findAllSubmissions()
-                .stream().filter(Q -> Q.getStudentId().equals(studentId)).toList();
 
-        for (QuizSubmission quizSubmission : submissions) {
-            PerformanceRecord record = new PerformanceRecord();
-            String description = quizRepository.findById(quizSubmission.getQuizId()).getDescription();
-            double score = (double) quizSubmission.getScore();
-            record.setType("Quiz");
-            record.setDescription(description);
-            record.setScoreOrStatus(score);
-            records.add(record);
+        // Check if instructor manages the course
+        Optional<Course> courseOptional = courseRepository.findById(courseId);
+        if (courseOptional.isPresent() && courseOptional.get().getInstructor().getUserId().equals(instructorId)) {
+            // Check if student is enrolled in the course
+            Course course = courseOptional.get();
+            if (course.getEnrolledStudents().stream().anyMatch(student -> student.getUserId().equals(studentId))) {
+
+                // Fetch quiz submissions for the student
+                List<Long> quizIds = quizRepository.quizzes
+                        .stream()
+                        .filter(Q -> Q.getCourse().getId().equals(courseId))
+                        .map(Quiz::getId)
+                        .toList();
+
+                // courses'quizes ids
+                List<QuizSubmission> submissions = new ArrayList<>();
+                for (Long quizId : quizIds) {
+                    submissions.addAll(quizRepository.submissions.stream().filter(submission -> submission.getQuizId().equals(quizId)).toList());
+                }
+
+                submissions = quizRepository.findAllSubmissions()
+                        .stream().filter(submission -> submission.getStudentId().equals(studentId))
+                        .toList();
+                for (QuizSubmission quizSubmission : submissions) {
+                    PerformanceRecord record = new PerformanceRecord();
+                    String description = quizRepository.findById(quizSubmission.getQuizId()).getDescription();
+                    double score = quizSubmission.getScore();
+                    record.setType("Quiz");
+                    record.setDescription(description);
+                    record.setScoreOrStatus(score);
+                    records.add(record);
+                }
+            }
+        }
+        return records;
+    }
+
+    public List<PerformanceRecord> trackAssignmentsByStudentId(String instructorId, Long courseId, String studentId) {
+        List<PerformanceRecord> records = new ArrayList<>();
+        Optional<Course> courseOptional = courseRepository.findById(courseId);
+        if (courseOptional.isPresent() && courseOptional.get().getInstructor().getUserId().equals(instructorId)) {
+            Course course = courseOptional.get();
+            if (course.getEnrolledStudents().stream().anyMatch(student -> student.getUserId().equals(studentId))) {
+
+                List<Assignment> assignments = assignmentRepository.findAll().stream()
+                        .filter(A -> A.getStudentId().equals(studentId)).toList();
+                for (Assignment assignment : assignments) {
+                    AssignmentRecord record = new AssignmentRecord(assignment.getTitle());
+                    record.setStatus(assignment.getStatus());
+                    records.add(record);
+
+                }
+            }
 
         }
         return records;
-
     }
-
-    // public List<PerformanceRecord> trackAssignmentSubmissions(String studentId) {
-    //     List<PerformanceRecord> records = new ArrayList<>();
-    //     List<Assignment> submissions = assignmentRepository.findAll()
-    //            .stream().filter(A -> A.getStudentId().equals(studentId)).toList();
-    // }
-    // public List<PerformanceRecord> trackAttendance(String studentId) {
-    //     // Fetch and return attendance records for the given student.
-    // }
-    // public List<PerformanceRecord> getProgressReport(String studentId) {
-    //     // Aggregate quiz scores, assignment submissions, and attendance into a comprehensive report.
-    // }
 }
+
+// Track assignment scores for a student in a specific course by instructor
+// public List<PerformanceRecord> trackAssignmentScoresByInstructor(String instructorId, Long courseId, String studentId) {
+//     List<PerformanceRecord> records = new ArrayList<>();
+//     // Check if instructor manages the course
+//     Optional<Course> courseOptional = courseRepository.findById(courseId);
+//     if (courseOptional.isPresent() && courseOptional.get().getInstructor().getUserId().equals(instructorId)) {
+//         // Check if student is enrolled in the course
+//         Course course = courseOptional.get();
+//         if (course.getEnrolledStudents().stream().anyMatch(student -> student.getUserId().equals(studentId))) {
+//             // Fetch assignments for the student
+//             List<Assignment> assignments = assignmentRepository.findAll()
+//                     .stream().filter(assignment -> assignment.getStudentId().equals(studentId) && assignment.getCourseId().equals(courseId))
+//                     .toList();
+//             for (Assignment assignment : assignments) {
+//                 PerformanceRecord record = new PerformanceRecord();
+//                 record.setType("Assignment");
+//                 record.setDescription(assignment.getTitle());
+//                 record.setScoreOrStatus(assignment.getGrade());
+//                 records.add(record);
+//             }
+//         }
+//     }
+//     return records;
+// }
+// // Track attendance for a student in a specific course by instructor
+// public List<PerformanceRecord> trackAttendanceByInstructor(String instructorId, Long courseId, String studentId) {
+//     List<PerformanceRecord> records = new ArrayList<>();
+//     // Check if instructor manages the course
+//     Optional<Course> courseOptional = courseRepository.findById(courseId);
+//     if (courseOptional.isPresent() && courseOptional.get().getInstructor().getUserId().equals(instructorId)) {
+//         // Check if student is enrolled in the course
+//         Course course = courseOptional.get();
+//         if (course.getEnrolledStudents().stream().anyMatch(student -> student.getUserId().equals(studentId))) {
+//             // Fetch attendance record for the student
+//             Student student = (Student) studentRepository.findById(studentId).orElse(null);
+//             if (student != null && student.getAttendanceList().containsKey(courseId)) {
+//                 Boolean attended = student.getAttendanceList().get(courseId);
+//                 PerformanceRecord record = new PerformanceRecord();
+//                 record.setType("Attendance");
+//                 record.setDescription("Attendance for course: " + course.getTitle());
+//                 record.setScoreOrStatus(attended ? "Present" : "Absent");
+//                 records.add(record);
+//             }
+//         }
+//     }
+//     return records;
+// }
+// // Aggregates quiz scores, assignments, and attendance for a comprehensive report
+// public List<PerformanceRecord> getComprehensiveProgressReport(String instructorId, Long courseId, String studentId) {
+//     List<PerformanceRecord> report = new ArrayList<>();
+//     // Track Quiz Scores
+//     report.addAll(trackQuizScoresByInstructor(instructorId, courseId, studentId));
+//     // Track Assignment Scores
+//     report.addAll(trackAssignmentScoresByInstructor(instructorId, courseId, studentId));
+//     // Track Attendance
+//     report.addAll(trackAttendanceByInstructor(instructorId, courseId, studentId));
+//     return report;
+// }
+/**
+ * ******************************************************************************************
+ *******************
+ * *************************************************************************
+ */
+// package com.example.demo.services;
+// import java.util.ArrayList;
+// import java.util.List;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.stereotype.Service;
+// import com.example.demo.model.Assignment;
+// import com.example.demo.model.PerformanceRecord;
+// import com.example.demo.model.QuizSubmission;
+// import com.example.demo.repository.AssignmentRepository;
+// import com.example.demo.repository.QuizRepository;
+// import com.example.demo.repository.StudentRepository;
+// @Service
+// public class PerformanceTrackingService {
+//     @Autowired
+//     private StudentRepository studentRepository;
+//     @Autowired
+//     private AssignmentRepository assignmentRepository;
+//     @Autowired
+//     private QuizRepository quizRepository;
+//     public List<PerformanceRecord> trackQuizScoresByStudentId(String studentId) {
+//         List<PerformanceRecord> records = new ArrayList<>();
+//         List<QuizSubmission> submissions = quizRepository.findAllSubmissions()
+//                 .stream().filter(Q -> Q.getStudentId().equals(studentId)).toList();
+//         for (QuizSubmission quizSubmission : submissions) {
+//             PerformanceRecord record = new PerformanceRecord();
+//             String description = quizRepository.findById(quizSubmission.getQuizId()).getDescription();
+//             double score = (double) quizSubmission.getScore();
+//             record.setType("Quiz");
+//             record.setDescription(description);
+//             record.setScoreOrStatus(score);
+//             records.add(record);
+//         }
+//         return records;
+//     }
+//     public List<PerformanceRecord> trackAssignmentScoresByStudentId(String studentId) {
+//         List<PerformanceRecord> records = new ArrayList<>();
+//         List<Assignment> assignments = assignmentRepository.findAll().stream()
+//                 .filter(A -> A.getStudentId().equals(studentId)).toList();
+//         for (Assignment assignment : assignments) {
+//             PerformanceRecord record = new PerformanceRecord();
+//             record.setType("Assignment");
+//             record.setDescription(assignment.getTitle());
+//             record.setScoreOrStatus(assignment.getGrade());
+//             records.add(record);
+//         }
+//         return records;
+//     }
+//     // public List<PerformanceRecord> trackAssignmentSubmissions(String studentId) {
+//     //     List<PerformanceRecord> records = new ArrayList<>();
+//     //     List<Assignment> submissions = assignmentRepository.findAll()
+//     //            .stream().filter(A -> A.getStudentId().equals(studentId)).toList();
+//     // }
+//     // public List<PerformanceRecord> trackAttendance(String studentId) {
+//     //     // Fetch and return attendance records for the given student.
+//     // }
+//     // public List<PerformanceRecord> getProgressReport(String studentId) {
+//     //     // Aggregate quiz scores, assignment submissions, and attendance into a comprehensive report.
+//     // }
+// }

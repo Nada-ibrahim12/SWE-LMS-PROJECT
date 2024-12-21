@@ -91,11 +91,11 @@
             <artifactId>spring-boot-admin-starter-server</artifactId>
             <version>3.4.0</version>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-starter-server</artifactId>
             <version>3.4.0</version>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>org.springframework.integration</groupId>
             <artifactId>spring-integration-http</artifactId>

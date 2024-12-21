@@ -9,7 +9,7 @@ public class PerformanceRecord {
     public PerformanceRecord() {
     }
 
-    public PerformanceRecord(String Type, String description, double scoreOrStatus, String date) {
+    public PerformanceRecord(String Type, String description, double scoreOrStatus) {
         this.Type = Type;
         this.description = description;
         this.scoreOrStatus = scoreOrStatus;
