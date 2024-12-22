@@ -138,12 +138,25 @@ public class UserService {
     }
 
     public void updateUserProfile(String token, user updatedProfile) {
+        // Extract username from token
         String username = jwtUtil.extractUsername(token);
+
+        // Fetch existing user
         user existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        existingUser.setUsername(updatedProfile.getUsername());
-        existingUser.setPassword(jwtUtil.hashPassword(updatedProfile.getPassword())); // Hash the password
+        // Update only non-null fields
+        if (updatedProfile.getUsername() != null && !updatedProfile.getUsername().isEmpty()) {
+            existingUser.setUsername(updatedProfile.getUsername());
+        }
+        if (updatedProfile.getPassword() != null && !updatedProfile.getPassword().isEmpty()) {
+            existingUser.setPassword(jwtUtil.hashPassword(updatedProfile.getPassword()));
+        }
+
+        // Set loggedIn to false to force login again
+        existingUser.setLoggedIn(false);
+
+        // Save the updated user
         userRepository.save(existingUser);
     }
 }
