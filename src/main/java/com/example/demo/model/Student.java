@@ -38,4 +38,10 @@ public class Student extends user {
     public void setAttendanceList(Map<Long, Boolean> attendanceList) {
         AttendanceList = attendanceList;
     }
+
+    public void addEnrolledCourse(String courseTitle) {
+        if (!enrolledCourses.contains(courseTitle)) {
+            enrolledCourses.add(courseTitle);
+        }
+    }
 }

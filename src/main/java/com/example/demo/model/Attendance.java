@@ -92,7 +92,7 @@ public class Attendance {
         return attend;
     }
 
-    public void SetIsAttend(boolean isAttend) {
+    public void setIsAttend(boolean isAttend) {
         this.isAttend = isAttend;
     }
 
