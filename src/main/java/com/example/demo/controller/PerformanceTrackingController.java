@@ -2,17 +2,15 @@ package com.example.demo.controller;
 
 import java.util.List;
 
+import org.apache.hc.core5.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.model.AssignmentRecord;
 import com.example.demo.model.PerformanceRecord;
 import com.example.demo.services.PerformanceTrackingService;
+import com.example.demo.services.UserService;
 
 @RestController
 @RequestMapping("/performance")
@@ -21,43 +19,59 @@ public class PerformanceTrackingController {
     @Autowired
     private PerformanceTrackingService performanceTrackingService;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping("/instructor/{instructorId}/course/{courseId}/student/{studentId}/quiz-scores")
-    public ResponseEntity<List<PerformanceRecord>> getQuizScores(@PathVariable String instructorId,
+    public ResponseEntity<List<PerformanceRecord>> getQuizScores(
+            @RequestHeader("Authorization") String token,
+            @PathVariable String instructorId,
             @PathVariable Long courseId,
             @PathVariable String studentId) {
+        if (!userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.status(403).build();
+        }
         List<PerformanceRecord> performanceRecords = performanceTrackingService
                 .trackQuizScoresByStudentId(instructorId, courseId, studentId);
-        return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
+        return ResponseEntity.ok(performanceRecords);
     }
 
     @GetMapping("/instructor/{instructorId}/course/{courseId}/student/{studentId}/assignments")
-    public ResponseEntity<List<AssignmentRecord>> getAssignments(@PathVariable String instructorId,
+    public ResponseEntity<List<AssignmentRecord>> getAssignments(
+            @RequestHeader("Authorization") String token,
+            @PathVariable String instructorId,
             @PathVariable Long courseId,
             @PathVariable String studentId) {
-        List<AssignmentRecord> performanceRecords = performanceTrackingService
+        if (!userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.status(403).build();
+        }
+        List<AssignmentRecord> assignmentRecords = performanceTrackingService
                 .trackAssignmentsByStudentId(instructorId, courseId, studentId);
-        return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
-
+        return ResponseEntity.ok(assignmentRecords);
     }
 
     @GetMapping("/instructor/{instructorId}/course/{courseId}/getAllStudentsQuizzes")
-    public ResponseEntity<List<PerformanceRecord>> getAllStudentsQuizzes(@PathVariable String instructorId, @PathVariable Long courseId) {
+    public ResponseEntity<List<PerformanceRecord>> getAllStudentsQuizzes(@RequestHeader("Authorization") String token, @PathVariable String instructorId, @PathVariable Long courseId) {
+        if (!userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.status(403).build();
+        }
         List<PerformanceRecord> performanceRecords = performanceTrackingService
                 .trackQuizScoresForAllStudentsWithNames(instructorId, courseId);
-        return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
+        return ResponseEntity.status(HttpStatus.SC_OK).body(performanceRecords);
 
     }
 
     @GetMapping("/instructor/{instructorId}/course/{courseId}/getAllStudentsAssignments")
-    public ResponseEntity<List<AssignmentRecord>> getAllStudentsAssignments(@PathVariable String instructorId, @PathVariable Long courseId) {
+    public ResponseEntity<List<AssignmentRecord>> getAllStudentsAssignments(@RequestHeader("Authorization") String token, @PathVariable String instructorId, @PathVariable Long courseId) {
+        if (!userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.status(403).build();
+        }
         List<AssignmentRecord> performanceRecords = performanceTrackingService
                 .trackAssignmentsForAllStudentsWithNames(instructorId, courseId);
-        return ResponseEntity.status(HttpStatus.OK).body(performanceRecords);
+        return ResponseEntity.status(HttpStatus.SC_OK).body(performanceRecords);
 
     }
-
 }
-
 // public class PerformanceTrackingController {
 //     @Autowired
 //     private PerformanceTrackingService performanceTrackingService;
