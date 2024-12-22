@@ -91,6 +91,7 @@ public class QuizService {
 
         if (!answers.isEmpty() && answers.get(0).getStudentId() != null) {
             Long studentId = answers.get(0).getStudentId();
+        emailService.sendEmail(studentRepository.findById(studentId).getStudentEmail(), "Quiz Grade", feedback);
         }
     }
 

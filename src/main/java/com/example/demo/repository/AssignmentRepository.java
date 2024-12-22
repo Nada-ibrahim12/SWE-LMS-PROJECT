@@ -1,17 +1,18 @@
 package com.example.demo.repository;
 
-import com.example.demo.model.Assignment;
-import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.model.Assignment;
 
 @Repository
 public class AssignmentRepository {
 
     public List<Assignment> assignments = new ArrayList<>();
-    public List<Assignment> submissions = new ArrayList<>();
 
     public List<Assignment> findAll(){
         return assignments;
@@ -38,10 +39,19 @@ public class AssignmentRepository {
         Optional<Assignment> assignment = findById(id);
         assignments.remove(assignment);
     }
+    
+   @SuppressWarnings("unlikely-arg-type")
+public List<Assignment> findByCourseIdAndStudentId(Long courseId, Long studentId) {
+    return assignments.stream()
+            .filter(a -> courseId != null && courseId.equals(a.getCourseId()) && studentId.equals(a.getStudentId()))
+            .collect(Collectors.toList());
+}
 
-    public Assignment saveSubmissions(Assignment assignment){
-        submissions.add(assignment);
-        return assignment;
-    }
+public boolean existsById(Long assessmentId) {
+    return assignments.stream().anyMatch(a -> a.getId().equals(assessmentId));
+}
+
+    
+    
 
 }

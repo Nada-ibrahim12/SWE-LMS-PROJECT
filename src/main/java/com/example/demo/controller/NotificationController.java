@@ -60,7 +60,7 @@ public class NotificationController {
             @RequestParam String role,
             @RequestParam String message,
             @RequestParam(required = false) String email,
-            @RequestParam(defaultValue = "true") boolean sendEmail) {
+            @RequestParam(defaultValue = "false") boolean sendEmail) {
 
         try {
             String token = extractToken(authorizationHeader);

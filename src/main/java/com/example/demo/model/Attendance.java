@@ -1,8 +1,14 @@
 package com.example.demo.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Random;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 
 @Entity
 public class Attendance {
@@ -24,6 +30,8 @@ public class Attendance {
 
     @Column(nullable = false)
     private boolean isAttend;
+    @Transient
+    private String status;
 
 //    @Column(nullable = false)
     private LocalDateTime timestamp;
@@ -107,4 +115,13 @@ public class Attendance {
         }
         return otp.toString();
     }
+    public String getStatus() {
+        return isAttend ? "Attended" : "Not Attended";
+    }
+
+    public void setStatus(String status) {
+        
+        this.status = status;
+    }
+
 }

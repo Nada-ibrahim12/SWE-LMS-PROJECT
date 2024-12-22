@@ -3,8 +3,6 @@ package com.example.demo.controller;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.demo.services.CourseService;
-import com.example.demo.services.LessonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.AttendanceRequest;
 import com.example.demo.model.Attendance;
 import com.example.demo.services.AttendanceService;
+import com.example.demo.services.CourseService;
+import com.example.demo.services.LessonService;
 import com.example.demo.services.UserService;
 
 @RestController
@@ -176,4 +176,26 @@ public class AttendanceController {
             return ResponseEntity.status(400).body(Optional.empty());
         }
     }
+    // @GetMapping("/instructor/track/student/{studentId}/lesson/{lessonId}")
+    // public ResponseEntity<Object> getAttendancePrograss(
+    //         @RequestHeader("Authorization") String authorizationHeader,
+    //         @PathVariable Long studentId,
+    //         @PathVariable Long lessonId) {
+    //     try {
+    //         String token = extractToken(authorizationHeader);
+    //         if (userService.hasRole(token, "Instructor")) {
+    //             Optional<Attendance> attendance = attendanceService.getAttendanceForStudentInLesson(studentId, lessonId);
+    //             if (attendance.isPresent()) {
+    //                 return ResponseEntity.ok(attendance);
+    //             } else {
+    //                 return ResponseEntity.status(404).body("Not attend.");
+    //             }
+    //         }
+    //         return ResponseEntity.status(403).body(Optional.empty());
+    //     } catch (IllegalArgumentException e) {
+    //         return ResponseEntity.status(400).body("Invalid request.");
+    //     }
+    // }
+    
+
 }

@@ -54,4 +54,3 @@ public class QuizSubmission {
         this.answers = answers;
     }
 }
-

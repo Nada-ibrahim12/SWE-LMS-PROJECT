@@ -1,26 +1,22 @@
 package com.example.demo.services;
 
-import com.example.demo.model.Assignment;
-import com.example.demo.model.Course;
-import com.example.demo.repository.AssignmentRepository;
-import com.example.demo.repository.CourseRepository;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import java.util.Optional;
+import com.example.demo.model.Assignment;
+import com.example.demo.repository.AssignmentRepository;
 
 @Service
 public class AssignmentService {
 
     @Autowired
     private AssignmentRepository assignmentRepository;
-    @Autowired
-    private CourseRepository courseRepository;
 
     public void submitAssignmentWithFile(Assignment assignment, MultipartFile file) throws Exception {
         if (file.isEmpty()) {
@@ -37,7 +33,7 @@ public class AssignmentService {
         Files.copy(file.getInputStream(), Paths.get(filePath));
 
         assignment.setUploadedFilePath(filePath);
-        assignmentRepository.saveSubmissions(assignment);
+        assignmentRepository.save(assignment);
     }
 
     public Optional<Assignment> getAssignmentById(Long id) {
@@ -49,11 +45,13 @@ public class AssignmentService {
         assignment.get().setStatus("Graded");
         assignmentRepository.save(assignment.orElse(null));
     }
-    public void createAssignment(Long courseId,Assignment assignment) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
-        assignment.setCourse(course);
-        assignmentRepository.save(assignment);
+
+    public Assignment createAssignment(String title, Long courseId) {
+        Assignment assignment = new Assignment();
+        assignment.setTitle(title);
+        assignment.setCourseId(courseId);
+        assignment.setStatus("Pending");
+        return assignmentRepository.save(assignment);
     }
 }
 

@@ -20,7 +20,7 @@ public class Lesson {
 
     @ManyToOne
     @JoinColumn(name = "course_id")
-    @JsonBackReference  // Prevent infinite loop during serialization
+    @JsonBackReference  
     private Course course;
 
     public Long getId() {

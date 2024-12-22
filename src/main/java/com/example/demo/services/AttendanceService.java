@@ -1,14 +1,15 @@
 package com.example.demo.services;
-import com.example.demo.dto.AttendanceRequest;
-import com.example.demo.model.Attendance;
-import com.example.demo.repository.AttendanceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.dto.AttendanceRequest;
+import com.example.demo.model.Attendance;
+import com.example.demo.repository.AttendanceRepository;
 
 @Service
 public class AttendanceService {
@@ -30,7 +31,7 @@ public class AttendanceService {
         attendance.setStudentId(request.getStudentId());
         attendance.setCourseId(request.getCourseId());
         attendance.setLessonId(request.getLessonId());
-        attendance.isAttend(true);
+        attendance.isAttend(false);
         attendance.setTimestamp(LocalDateTime.now());
 
         attendanceRepository.save(attendance);
@@ -76,4 +77,8 @@ public String generateOTP() {
         otpService.generateOtp(courseid, lessonid, otp);
         return otp;
     }
+    public Optional<Attendance> getAttendanceForStudentInLesson(Long studentId, Long lessonId) {
+        return attendanceRepository.findAttendanceByStudentAndLesson(studentId, lessonId);
+    }
+    
 }

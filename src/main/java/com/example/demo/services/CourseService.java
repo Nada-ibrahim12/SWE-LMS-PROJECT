@@ -69,10 +69,7 @@ public class CourseService {
     }
 
     public List<user> viewEnrolledStudents(Long courseId, String token) {
-        if (!userService.hasRole(token, "Instructor") || !userService.hasRole(token, "Admin")) {
-            throw new RuntimeException("Only instructors or admins can view enrolled students.");
-        }
-    
+        
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with ID: " + courseId));
     

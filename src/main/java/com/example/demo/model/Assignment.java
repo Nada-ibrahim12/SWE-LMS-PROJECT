@@ -1,8 +1,9 @@
 package com.example.demo.model;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.Random;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
 public class Assignment {
@@ -14,11 +15,8 @@ public class Assignment {
     private String status;
     private String filePath;
     private String studentId;
-//    private Long courseId;
-
-    @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private Long courseId;
+    private double score;
 
 
 //    @ManyToOne
@@ -65,12 +63,15 @@ public class Assignment {
     public void setStudentId(String studentId) {
         this.studentId = studentId;
     }
-    public Course getCourse() {
-        return course;
-    }
 
-    public void setCourse(Course course) {
-        this.course = course;
+    public Long getCourseId() {
+        return courseId;
+    }
+    public void setCourseId(Long courseId) {
+        this.courseId = courseId;
+    }
+    public double getScore() {
+        return score;
     }
 
 }

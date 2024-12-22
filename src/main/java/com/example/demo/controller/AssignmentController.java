@@ -1,16 +1,24 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Assignment;
-import com.example.demo.services.NotificationService;
-import com.example.demo.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.example.demo.services.AssignmentService;
-
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.example.demo.model.Assignment;
+import com.example.demo.services.AssignmentService;
+import com.example.demo.services.NotificationService;
+import com.example.demo.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
@@ -40,11 +48,9 @@ public class AssignmentController {
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
     }
 
-    @PostMapping("/{course-id}/{assignemt-id}/submit")
+    @PostMapping("/submit")
     public ResponseEntity<String> submitAssignment(
             @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable long assignmentId,
-            @PathVariable long courseId,
             @RequestParam("assignment") String assignmentData,
             @RequestParam("file") MultipartFile file) {
 
@@ -60,7 +66,7 @@ public class AssignmentController {
                     assignmentService.submitAssignmentWithFile(assignment, file);
                     String message = "Assignment with Title: " + assignment.getTitle() + "submitted successfully";
                     notificationService.sendNotification(id, "Student", message
-                                                         , email, true);
+                                                         , email, false);
                     return ResponseEntity.ok("Assignment submitted successfully");
                 } catch (Exception e) {
                     return ResponseEntity.status(400).body("Failed to submit assignment: " + e.getMessage());
@@ -88,10 +94,10 @@ public class AssignmentController {
         }
     }
 
-    @PutMapping("/{assignment-id}/grade")
+    @PutMapping("/grade")
     public ResponseEntity<Assignment> gradeAssignment(
             @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable Long id,
+            @RequestParam("quiz-id") Long id,
             @RequestBody String feedback) {
         try {
             String token = extractToken(authorizationHeader);
@@ -102,7 +108,7 @@ public class AssignmentController {
 
                 String email = userService.getUserById(studentId).getEmail();
                 String message = "Assignment with Title: " + assignment.get().getTitle() + " graded successfully\n Grade: " + feedback;
-                notificationService.sendNotification(studentId, "Student", message, email, true);
+                notificationService.sendNotification(studentId, "Instructor", message, email, false);
 
                 return ResponseEntity.ok(assignment.get());
             }
@@ -112,26 +118,29 @@ public class AssignmentController {
         }
         return ResponseEntity.status(403).build();
     }
+//     @GetMapping("/instructor/track/{courseId}/{studentId}")
+// public ResponseEntity<List<Assignment>> trackStudentProgress(
+//         @RequestHeader("Authorization") String authorizationHeader,
+//         @PathVariable Long courseId,
+//         @PathVariable String studentId,
+//         @RequestParam(required = false) String status) {
+//     try {
+//         // Extract token and validate instructor role
+//         String token = extractToken(authorizationHeader);
+//         if (userService.hasRole(token, "Instructor")) {
+//             // Fetch assignments for the student in the specific course
+//             List<Assignment> assignments = (status == null) ?
+//                     assignmentService.getAssignmentsByCourseAndStudent(courseId, studentId) :
+//                     assignmentService.getAssignmentsByCourseAndStudentAndStatus(courseId, studentId, status);
 
-    @PostMapping("/{course-id}/create-assignment")
-    public void createAssignment(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable Long courseId,
-            @RequestParam("assignment") Assignment assignment
-            ) {
-        try {
-            String token = extractToken(authorizationHeader);
-            if (userService.hasRole(token, "Instructor")) {
-                    String id = userService.getUserFromToken(token).getUserId();
-                    String email = userService.getUserFromToken(token).getEmail();
-                    assignmentService.createAssignment(courseId, assignment);
-                    String message = "Assignment with Title: " + assignment.getTitle() + "assigned successfully";
-                    notificationService.sendNotification(id, "Instructor", message
-                            , email, true);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//             return ResponseEntity.ok(assignments);
+//         }
+//         return ResponseEntity.status(403).body(null); // Forbidden
+//     } catch (IllegalArgumentException e) {
+//         return ResponseEntity.status(400).body(null); // Bad request
+//     }
+// }
+
+
 }
 

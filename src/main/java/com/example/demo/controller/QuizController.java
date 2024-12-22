@@ -2,8 +2,6 @@ package com.example.demo.controller;
 
 import java.util.List;
 
-import com.example.demo.model.QuizSubmission;
-import com.example.demo.services.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,20 +17,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Question;
 import com.example.demo.model.Quiz;
+import com.example.demo.model.QuizSubmission;
 import com.example.demo.services.QuizService;
+import com.example.demo.services.SubmitQuizService;
 import com.example.demo.services.UserService;
 
 @RestController
 @RequestMapping("/quizzes")
 public class QuizController {
+    @Autowired
+    private SubmitQuizService submitQuizService; // Updated service name
 
     @Autowired
     private QuizService quizService;
+
     @Autowired
     private UserService userService;
-    @Autowired
-    private NotificationService notificationService;
 
+    // Helper method to extract token
     private String extractToken(String authorizationHeader) {
         if (isValidAuthorizationHeader(authorizationHeader)) {
             return authorizationHeader.replace("Bearer ", "");
@@ -44,6 +46,7 @@ public class QuizController {
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
     }
 
+    // Create quiz (Instructor only)
     @PostMapping("/instructor/{courseId}/create-quiz")
     public ResponseEntity<Quiz> createQuiz(@RequestHeader("Authorization") String authorizationHeader,
                                            @PathVariable Long courseId,
@@ -55,17 +58,8 @@ public class QuizController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-    
-    // @PostMapping("/instructor/generate-QB")
-    // public ResponseEntity<Quiz> generateQB(@RequestHeader("Authorization") String authorizationHeader,
-    //                                        @RequestBody Quiz quiz) {
-    //     String token = extractToken(authorizationHeader);
-    //     if (userService.hasRole(token, "Instructor")) {
-    //         return ResponseEntity.ok(quizService.createQuiz(null, quiz));
-    //     }
-    //     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    // }
 
+    // Get all quizzes (Instructor only)
     @GetMapping("/instructor/all")
     public ResponseEntity<List<Quiz>> getAllQuizzes(@RequestHeader("Authorization") String authorizationHeader) {
         String token = extractToken(authorizationHeader);
@@ -75,6 +69,7 @@ public class QuizController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    // Get quiz by ID (Student only)
     @GetMapping("/student/get-quiz/{id}")
     public ResponseEntity<Quiz> getQuizById(@RequestHeader("Authorization") String authorizationHeader,
                                             @PathVariable Long id) {
@@ -85,61 +80,64 @@ public class QuizController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @GetMapping("/student/take-quiz/{id}")
-    public ResponseEntity<Quiz> takeQuiz(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable Long id) {
-        String token = extractToken(authorizationHeader);
-        if (userService.hasRole(token, "Student")) {
-            Quiz quiz = quizService.getQuizById(id);
-            if (quiz != null) {
-                return ResponseEntity.ok(quiz);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-
-    @PostMapping("/student/submit-quiz/{id}")
-    public ResponseEntity<String> submitQuiz(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable Long id,
-            @RequestBody QuizSubmission submission) {
-        try {
-            String token = extractToken(authorizationHeader);
-            if (userService.hasRole(token, "Student")) {
-                String studentId = userService.getUserFromToken(token).getUserId();
-                submission.setStudentId(studentId);
-                String email = userService.getUserFromToken(token).getEmail();
-                String message = "Quiz submitted successfully and graded\n";
-                notificationService.sendNotification(studentId, "Student", message, email, true);
-                return ResponseEntity.ok("Quiz submitted successfully and graded");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to submit quiz: " + e.getMessage());
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-
-
-    @DeleteMapping("/instructor/delete-guiz/{id}")
+    // Delete quiz by ID (Instructor only)
+    @DeleteMapping("/instructor/delete-quiz/{id}")
     public ResponseEntity<Void> deleteQuiz(@RequestHeader("Authorization") String authorizationHeader,
                                            @PathVariable Long id) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Instructor")) {
             quizService.deleteQuiz(id);
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @GetMapping("/instructor/quizzes-radnomize/{quizId}")
-    public List<Question> getRandomQuestionsForAttempt(@RequestHeader("Authorization") String authorizationHeader,
-                                                       @RequestParam Long quizId, @RequestParam int numQuestions) {
+    // Randomize quiz questions (Instructor only)
+    @GetMapping("/instructor/quizzes-randomize/{quizId}")
+    public ResponseEntity<List<Question>> getRandomQuestionsForAttempt(@RequestHeader("Authorization") String authorizationHeader,
+                                                                        @PathVariable Long quizId,
+                                                                        @RequestParam int numQuestions) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Instructor")) {
-            return quizService.getRandomizedQuestions(quizId, numQuestions);
+            return ResponseEntity.ok(quizService.getRandomizedQuestions(quizId, numQuestions));
         }
-        throw new IllegalArgumentException("Invalid Authorization header");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
+    @PostMapping("/submitQuiz/{quizId}")
+    public ResponseEntity<QuizSubmission> submitQuiz(@RequestHeader("Authorization") String authorizationHeader,@RequestParam("quizId") Long quizId,@RequestBody QuizSubmission quizSubmission) {
+
+    String token = extractToken(authorizationHeader);
+        if (!userService.hasRole(token, "Student")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        try {
+            QuizSubmission savedSubmission = submitQuizService.submitQuiz(quizSubmission);
+            return ResponseEntity.ok(savedSubmission);
+        } catch (RuntimeException ex) {
+            System.out.println("Error during quiz submission: " + ex.getMessage());
+        return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    // @PostMapping("/assignments/{submissionId}/grade")
+    // public ResponseEntity<String> gradeAssignment(@RequestHeader("Authorization") String authorizationHeader,
+    //                                               @PathVariable Long submissionId,
+    //                                               @RequestParam int grade,
+    //                                               @RequestParam String feedback) {
+    //     String token = extractToken(authorizationHeader);
+    //     if (userService.hasRole(token, "Instructor")) {
+    //         submitQuizService.gradeAssignment(submissionId, grade, feedback);
+    //         return ResponseEntity.ok("Assignment graded successfully.");
+    //     }
+    //     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    // }
+
+    // Evaluate a quiz
+    // @PostMapping("/quizzes/{quizId}/evaluate")
+    // public ResponseEntity<QuizResult> evaluateQuiz(@RequestBody Map<Long, String> answers,
+    //                                                @PathVariable Long quizId) {
+    //     QuizResult result = submitQuizService.evaluateQuiz(quizId, answers);
+    //     return ResponseEntity.ok(result);
+    // }
 }

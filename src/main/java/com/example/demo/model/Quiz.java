@@ -24,6 +24,8 @@ public class Quiz {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
+    private int score;
+
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();
 
@@ -65,6 +67,13 @@ public class Quiz {
 
     public void setCourse(Course course) {
         this.course = course;
+    }
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
     }
    
 }
