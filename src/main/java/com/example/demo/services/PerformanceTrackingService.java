@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.model.Assignment;
+import com.example.demo.model.AssignmentSubmission;
 import com.example.demo.model.Attendance;
 import com.example.demo.model.AttendanceRecord;
 import com.example.demo.model.PerformanceRecord;
@@ -50,10 +50,10 @@ public class PerformanceTrackingService {
 
     public List<PerformanceRecord> trackAssignmentSubmissions(String studentId) {
         List<PerformanceRecord> records = new ArrayList<>();
-        List<Assignment> submissions = assignmentRepository.findAll()
+        List<AssignmentSubmission> submissions = assignmentRepository.findAll()
                 .stream().filter(A -> A.getStudentId().equals(studentId)).toList();
 
-        for (Assignment assignment : submissions) {
+        for (AssignmentSubmission assignment : submissions) {
             PerformanceRecord record = new PerformanceRecord();
             String description = assignment.getTitle();
             double score = (double) assignment.getScore();
