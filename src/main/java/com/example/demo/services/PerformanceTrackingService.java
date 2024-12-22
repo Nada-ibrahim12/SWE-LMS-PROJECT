@@ -4,25 +4,24 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.apache.poi.sl.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.example.demo.model.Assignment;
 import com.example.demo.model.AssignmentRecord;
 import com.example.demo.model.Course;
 import com.example.demo.model.PerformanceRecord;
+import com.example.demo.model.ProgressReport;
 import com.example.demo.model.Quiz;
 import com.example.demo.model.QuizSubmission;
+import com.example.demo.model.Student;
 import com.example.demo.model.user;
 import com.example.demo.repository.AssignmentRepository;
 import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.QuizRepository;
 import com.example.demo.repository.StudentRepository;
-
 import io.micrometer.core.instrument.MultiGauge.Row;
 
 @Service
@@ -165,6 +164,54 @@ public class PerformanceTrackingService {
             }
         }
         return records;
+    }
+
+    //************************************* *
+    // fetching Progress reports:
+    // Method to fetch progress report for a student in a specific course
+    public ProgressReport fetchProgressReport(String instructorId, Long courseId, String studentId) {
+        ProgressReport report = new ProgressReport();
+
+        // Check if instructor manages the course
+        Optional<Course> courseOptional = courseRepository.findById(courseId);
+        if (courseOptional.isPresent() && courseOptional.get().getInstructor().getUserId().equals(instructorId)) {
+            Course course = courseOptional.get();
+            // Fetch student details
+            Optional<Student> studentOptional = Optional.of(studentRepository.findById(studentId));
+            if (studentOptional.isPresent() && course.getEnrolledStudents().contains(studentOptional.get())) {
+                user student = studentOptional.get();
+
+                // Set student name and course name
+                report.setStudentName(student.getUsername());
+                report.setCourseName(course.getTitle());
+
+                List<PerformanceRecord> quizRecords = trackQuizScoresByStudentId(instructorId, courseId, studentId);
+                report.setQuizRecords(quizRecords);
+
+                List<AssignmentRecord> assignmentRecords = trackAssignmentsByStudentId(instructorId, courseId, studentId);
+                report.setAssignmentRecords(assignmentRecords);
+            }
+        }
+        return report;
+    }
+
+    // Method to fetch progress reports for all students in a specific course
+    public List<ProgressReport> fetchProgressReportsForAllStudents(String instructorId, Long courseId) {
+        List<ProgressReport> progressReports = new ArrayList<>();
+
+        // Check if instructor manages the course
+        Optional<Course> courseOptional = courseRepository.findById(courseId);
+        if (courseOptional.isPresent() && courseOptional.get().getInstructor().getUserId().equals(instructorId)) {
+            Course course = courseOptional.get();
+
+            for (user student : course.getEnrolledStudents()) {
+                ProgressReport report = fetchProgressReport(instructorId, courseId, student.getUserId());
+                if (report != null) {
+                    progressReports.add(report);
+                }
+            }
+        }
+        return progressReports;
     }
 
 }

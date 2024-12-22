@@ -29,7 +29,7 @@ public class AttendanceService {
 
         Attendance attendance = new Attendance();
         attendance.setStudentId(request.getStudentId());
-        attendance.setCourseId(request.getCourseId());
+        attendance.setCourseID(request.getCourseId());
         attendance.setLessonId(request.getLessonId());
         attendance.SetIsAttend(true);
         attendance.setTimestamp(LocalDateTime.now());
@@ -83,10 +83,3 @@ public class AttendanceService {
         return otp;
     }
 }
-
-    
-    
-    
-    
-                                                                                
-    

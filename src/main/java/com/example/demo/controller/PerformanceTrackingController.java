@@ -2,13 +2,12 @@ package com.example.demo.controller;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.model.AssignmentRecord;
 import com.example.demo.model.PerformanceRecord;
+import com.example.demo.model.ProgressReport;
 import com.example.demo.services.PerformanceTrackingService;
 import com.example.demo.services.UserService;
 
@@ -190,4 +189,46 @@ public class PerformanceTrackingController {
             row.createCell(2).setCellValue(record.getStatus());
         }
     }
+
+    //*********************************************
+    @GetMapping("/instructor/{instructorId}/course/{courseId}/student/{studentId}/progressReport")
+    public ResponseEntity<ProgressReport> getProgressReport(
+            @RequestHeader("Authorization") String token,
+            @PathVariable String instructorId,
+            @PathVariable Long courseId,
+            @PathVariable String studentId) {
+
+        // Check for valid instructor role
+        if (!userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.status(403).build();
+        }
+
+        ProgressReport report = performanceTrackingService.fetchProgressReport(instructorId, courseId, studentId);
+
+        if (report != null) {
+            return ResponseEntity.ok(report);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{instructorId}/course/{courseId}/progressReports")
+    public ResponseEntity<List<ProgressReport>> getProgressReportsForAllStudents(
+            @RequestHeader("Authorization") String token,
+            @PathVariable String instructorId,
+            @PathVariable Long courseId) {
+
+        // Validate that the user has instructor role
+        if (!userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.status(HttpStatus.SC_FORBIDDEN).build(); // 403 Forbidden
+        }
+
+        List<ProgressReport> progressReports = performanceTrackingService.fetchProgressReportsForAllStudents(instructorId, courseId);
+        if (progressReports.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.SC_NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(progressReports);
+    }
+
 }

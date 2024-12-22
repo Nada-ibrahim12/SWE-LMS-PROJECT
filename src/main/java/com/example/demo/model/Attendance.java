@@ -22,6 +22,8 @@ public class Attendance {
 
     private boolean isAttend;
 
+    private Long courseID;
+
 //    @Column(nullable = false)
     private LocalDateTime timestamp;
 
@@ -98,9 +100,12 @@ public class Attendance {
         return otp.toString();
     }
 
-    public void setCourseId(Long courseId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setCourseId'");
+    public Long getCourseID() {
+        return courseID;
+    }
+
+    public void setCourseID(Long courseID) {
+        this.courseID = courseID;
     }
 
 }
