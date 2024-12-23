@@ -14,19 +14,19 @@ public class Question {
     private String options;
     private int marks;
 
-    @ManyToOne
-    @JoinColumn(name = "quiz_id", nullable = false)
-    private Quiz quiz;
+//    @ManyToOne
+//    @JoinColumn(name = "quiz_id", nullable = false)
+    private Long quizid;
 
     public Question() {
         super();
     }
 
-    public Question(String questionText, String questionType, String answer, Quiz quiz) {
+    public Question(String questionText, String questionType, String answer, Long quizid) {
         this.questionText = questionText;
         this.questionType = questionType;
         this.answer = answer;
-        this.quiz = quiz;
+        this.quizid = quizid;
     }
 
     public Long getId() {
@@ -61,12 +61,12 @@ public class Question {
         this.answer = answer;
     }
 
-    public Quiz getQuiz() {
-        return quiz;
+    public Long getQuiz() {
+        return quizid;
     }
 
-    public void setQuiz(Quiz quiz) {
-        this.quiz = quiz;
+    public void setQuiz(Long quizid) {
+        this.quizid = quizid;
     }
 
     public int getMarks() {
