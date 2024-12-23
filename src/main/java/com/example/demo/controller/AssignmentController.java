@@ -128,7 +128,7 @@ public class AssignmentController {
     public ResponseEntity<?> gradeAssignment(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam("quiz-id") Long id,
-            @RequestBody Long score) {
+            @RequestParam Long score) {
         try {
             String token = extractToken(authorizationHeader);
             if (!userService.hasRole(token, "Instructor")) {
@@ -194,28 +194,34 @@ public class AssignmentController {
     }
 
     @GetMapping("/instructor/{id}")
-    public ResponseEntity<?> getAssignmentById(
+    public ResponseEntity<Object> getAssignmentById(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long id) {
         try {
             String token = extractToken(authorizationHeader);
+
             if (userService.hasRole(token, "Instructor")) {
                 Optional<Assignment> assignmentOpt = assignmentService.getAssignment(id);
 
                 if (assignmentOpt.isPresent()) {
                     return ResponseEntity.ok(assignmentOpt.get());
                 } else {
-                    return ResponseEntity.status(404).body("Assignment not found with ID: " + id);
+                    return ResponseEntity.status(404)
+                            .body("Assignment not found with ID: " + id);
                 }
             } else {
-                return ResponseEntity.status(403).body("Forbidden: Only instructors can access this resource.");
+                return ResponseEntity.status(403)
+                        .body("Forbidden: Only instructors can access this resource.");
             }
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(401).body("Invalid token or missing authorization header.");
+            return ResponseEntity.status(401)
+                    .body("Invalid token or missing authorization header.");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("An unexpected error occurred: " + e.getMessage());
+            return ResponseEntity.status(500)
+                    .body("An unexpected error occurred: " + e.getMessage());
         }
     }
+
 
     @GetMapping("/instructor/all")
     public ResponseEntity<List<Assignment>> getAllAssignment(
