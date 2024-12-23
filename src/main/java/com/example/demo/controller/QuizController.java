@@ -104,7 +104,7 @@ public class QuizController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         try {
-            quizSubmission.setQuiz(quizId);
+            quizSubmission.setQuiz(quizService.getQuizById(quizId));
             QuizSubmission savedSubmission = quizService.submitQuiz(quizSubmission);
             if (savedSubmission.isRequiresManualGrading()) {
                 return ResponseEntity.status(HttpStatus.ACCEPTED)

@@ -117,7 +117,7 @@ public class QuizService {
     }
 
     public QuizSubmission submitQuiz(QuizSubmission quizSubmission) {
-        Quiz quiz = quizRepository.findById(quizSubmission.getQuiz());
+        Quiz quiz = quizRepository.findById(quizSubmission.getQuiz().getId());
 
         int totalMarks = 0;
         int obtainedMarks = 0;
@@ -163,10 +163,8 @@ public class QuizService {
         quizSubmission.setScore(obtainedMarks);
         quizSubmission.setRequiresManualGrading(requiresManualGrading);
 
-        String studentId = quizSubmission.getStudent();
-        user student = studentRepository.findById(studentId);
-        String studentEmail = student.getEmail();
-        emailService.sendEmail(studentEmail, "Quiz Grade", feedback);
+//        String studentEmail = quizSubmission.getStudent().getEmail();
+//        emailService.sendEmail(studentEmail, "Quiz Grade", feedback);
 
         return quizRepository.saveSubmissions(quizSubmission);
     }
