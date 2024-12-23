@@ -42,11 +42,13 @@ public class QuizController {
                                            @RequestBody Quiz quiz) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Instructor")) {
-            Quiz createdQuiz = quizService.createQuiz(courseId, quiz);
+            int numOfQuestions = quiz.getNumOfQuestions();
+            Quiz createdQuiz = quizService.createQuiz(courseId, quiz, numOfQuestions);
             return ResponseEntity.ok(createdQuiz);
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
 
     // Get all quizzes (Instructor only)
     @GetMapping("/instructor/all")
@@ -58,6 +60,33 @@ public class QuizController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    @GetMapping("/instructor/submissions/all")
+    public ResponseEntity<List<QuizSubmission>> getAllSubmissions(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = extractToken(authorizationHeader);
+        if (userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.ok(quizService.getAllSubmissions());
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @GetMapping("/student/get-submission/{id}")
+    public ResponseEntity<QuizSubmission> getSubmissionbyIdbyStu(@RequestHeader("Authorization") String authorizationHeader,
+                                            @PathVariable Long id) {
+        String token = extractToken(authorizationHeader);
+        if (userService.hasRole(token, "Student")) {
+            return ResponseEntity.ok(quizService.findQuizSubmissionById(id));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @GetMapping("/instructor/get-submission/{id}")
+    public ResponseEntity<QuizSubmission> getSubmissionbyIdbyInst(@RequestHeader("Authorization") String authorizationHeader,
+                                                                 @PathVariable Long id) {
+        String token = extractToken(authorizationHeader);
+        if (userService.hasRole(token, "Student")) {
+            return ResponseEntity.ok(quizService.findQuizSubmissionById(id));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
     // Get quiz by ID (Student only)
     @GetMapping("/student/get-quiz/{id}")
     public ResponseEntity<Quiz> getQuizById(@RequestHeader("Authorization") String authorizationHeader,
@@ -84,11 +113,12 @@ public class QuizController {
     // Randomize quiz questions (Instructor only)
     @GetMapping("/instructor/quizzes-randomize/{quizId}")
     public ResponseEntity<List<Question>> getRandomQuestionsForAttempt(@RequestHeader("Authorization") String authorizationHeader,
-                                                                       @PathVariable Long quizId,
+//                                                                       @PathVariable Long quizId,
+                                                                       @RequestParam("question-bank-id") Long questionBankId,
                                                                        @RequestParam int numQuestions) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Instructor")) {
-            return ResponseEntity.ok(quizService.getRandomizedQuestions(quizId, numQuestions));
+            return ResponseEntity.ok(quizService.getRandomizedQuestions(questionBankId, numQuestions));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
@@ -121,4 +151,32 @@ public class QuizController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
+//    @PostMapping("/gradeSubmission/{submissionId}")
+//    public ResponseEntity<QuizSubmission> gradeSubmission(
+//            @RequestHeader("Authorization") String authorizationHeader,
+//            @RequestBody List<Answer> gradedAnswers,
+//            @PathVariable Long submissionId) {
+//
+//        String token = extractToken(authorizationHeader);
+//        if (!userService.hasRole(token, "Instructor")) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+//        }
+//
+//        QuizSubmission submission = quizService.findQuizSubmissionById(submissionId);
+//
+//        int additionalScore = 0;
+//        for (Answer gradedAnswer : gradedAnswers) {
+//            Answer originalAnswer = quizService.findAnswerById(gradedAnswer.getId())
+//                    .orElseThrow(() -> new RuntimeException("Answer not found."));
+//            originalAnswer.setScore(gradedAnswer.getScore());
+//            additionalScore += gradedAnswer.getScore();
+//        }
+//
+//        submission.setScore(submission.getScore() + additionalScore);
+//        submission.setRequiresManualGrading(false);  // All questions graded
+//        QuizSubmission updatedSubmission = quizService.updateQuizSubmission(submission);
+//
+//        return ResponseEntity.ok(updatedSubmission);
+//    }
 }

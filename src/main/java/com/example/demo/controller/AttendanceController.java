@@ -53,15 +53,23 @@ public class AttendanceController {
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestBody AttendanceRequest request) {
         try {
+            System.out.println("Authorization Header: " + authorizationHeader);
+
             String token = extractToken(authorizationHeader);
+            System.out.println("Extracted Token: " + token);
+
             if (userService.hasRole(token, "Student")) {
+                System.out.println("Student Role Validated");
                 attendanceService.markAttendance(request);
                 return ResponseEntity.ok("Attendance marked successfully");
             }
+            System.out.println("Unauthorized Access Attempt");
             return ResponseEntity.status(403).body("Unauthorized");
         } catch (IllegalArgumentException e) {
+            System.out.println("Invalid Request: " + e.getMessage());
             return ResponseEntity.status(400).body(e.getMessage());
         } catch (RuntimeException e) {
+            System.out.println("Runtime Exception: " + e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -74,13 +82,13 @@ public class AttendanceController {
         try {
             String token = extractToken(authorizationHeader);
             if (userService.hasRole(token, "Instructor")) {
-                if (courseService.getCourseById(courseId) != null) {
+                if (courseService.getCourseById(courseId) == null) {
                     return ResponseEntity.status(404).body("Course not found");
                 }
 
-                if (!lessonService.isLessonInCourse(lessonId, courseId)) {
-                    return ResponseEntity.status(400).body("Lesson does not belong to the specified course");
-                }
+//                if (!lessonService.isLessonInCourse(lessonId, courseId)) {
+//                    return ResponseEntity.status(400).body("Lesson does not belong to the specified course");
+//                }
                 String otp = attendanceService.generateAndStoreOtp(courseId, lessonId);
                 return ResponseEntity.ok("Generated OTP: " + otp);
             }
@@ -108,7 +116,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/instructor/attendance/{id}")
-    public ResponseEntity<Optional<Attendance>> getAttendanceById(
+    public ResponseEntity<Optional<Attendance>>    getAttendanceById(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long id) {
         try {

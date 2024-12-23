@@ -61,7 +61,7 @@ public class AssignmentController {
                     assignmentService.submitAssignmentWithFile(id, assignment, file);
                     String message = "Assignment submitted successfully";
                     notificationService.sendNotification(id, "Student", message
-                                                         , email, true);
+                            , email, true);
                     return ResponseEntity.ok("Assignment submitted successfully");
                 } catch (Exception e) {
                     return ResponseEntity.status(400).body("Failed to submit assignment: " + e.getMessage());
@@ -260,4 +260,3 @@ public class AssignmentController {
         }
     }
 }
-

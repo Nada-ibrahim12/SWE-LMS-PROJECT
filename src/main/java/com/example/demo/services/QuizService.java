@@ -1,10 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.model.*;
-import com.example.demo.repository.CourseRepository;
-import com.example.demo.repository.QuizRepository;
-import com.example.demo.repository.StudentRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,16 +25,21 @@ public class QuizService {
     private CourseRepository courseRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private QuestionBankRepository questionBankRepository;
 
-    public Quiz createQuiz(Long courseId, Quiz quiz) {
+    public Quiz createQuiz(Long courseId, Quiz quiz, int numOfQuestions) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found"));
 
         quiz.setCourse(course);
 
-        for (Question question : quiz.getQuestions()) {
-            question.setQuiz(quiz.getId());
+        QuestionBank questionBank = questionBankRepository.findByCourseId(courseId);
+        if (questionBank == null) {
+            throw new IllegalArgumentException("Question bank not found for the course");
         }
+        List<Question> randomizedQuestions = getRandomizedQuestions(questionBank.getId(), numOfQuestions);
+        quiz.setQuestions(randomizedQuestions);
 
         return quizRepository.save(quiz);
     }
@@ -110,9 +112,9 @@ public class QuizService {
         }
     }
 
-    public List<Question> getRandomizedQuestions(Long quizId, int numQuestions) {
-        Quiz quiz = quizRepository.findById(quizId);
-        List<Question> questions = quiz.getQuestions();
+    public List<Question> getRandomizedQuestions(Long questionBankId, int numQuestions) {
+        QuestionBank questionBank = questionBankRepository.findById(questionBankId);
+        List<Question> questions = questionBank.getQuestions();
 
         Collections.shuffle(questions);
 
@@ -190,4 +192,8 @@ public class QuizService {
         quizRepository.saveSubmissions(submission);
         return submission;
     }
+    public List<QuizSubmission> getAllSubmissions() {
+        return quizRepository.findAllSubmissions();
+    }
+
 }
