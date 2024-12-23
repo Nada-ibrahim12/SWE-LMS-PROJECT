@@ -1,5 +1,5 @@
 package com.example.demo.model;
-
+import com.example.demo.model.Student;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -9,19 +9,29 @@ public class QuizSubmission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String studentId;
-    private Long quizId;
+
+    @ManyToOne
+    @JoinColumn(name = "student_id", nullable = false)
+    private Student student;
+
+    @ManyToOne
+    @JoinColumn(name = "quiz_id", nullable = false)
+    private Quiz quiz;
+
     private int score;
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<Answer> answers;
 
+    private boolean requiresManualGrading;
+
     public QuizSubmission() {}
-    public QuizSubmission(String studentId, Long quizId, int score, List<Answer> answers) {
-        this.studentId = studentId;
-        this.quizId = quizId;
+    public QuizSubmission(Student student, Quiz quiz, int score, List<Answer> answers, boolean requiresManualGrading) {
+        this.student = student;
+        this.quiz = quiz;
         this.score = score;
         this.answers = answers;
+        this.requiresManualGrading = requiresManualGrading;
     }
     public Long getId() {
         return id;
@@ -29,17 +39,17 @@ public class QuizSubmission {
     public void setId(Long id) {
         this.id = id;
     }
-    public String getStudentId() {
-        return studentId;
+    public Student getStudent() {
+        return student;
     }
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
+    public void setStudent(Student student) {
+        this.student = student;
     }
-    public Long getQuizId() {
-        return quizId;
+    public Quiz getQuiz() {
+        return quiz;
     }
-    public void setQuizId(Long quizId) {
-        this.quizId = quizId;
+    public void setQuiz(Quiz quiz) {
+        this.quiz = quiz;
     }
     public int getScore() {
         return score;
@@ -52,5 +62,11 @@ public class QuizSubmission {
     }
     public void setAnswers(List<Answer> answers) {
         this.answers = answers;
+    }
+    public boolean isRequiresManualGrading() {
+        return requiresManualGrading;
+    }
+    public void setRequiresManualGrading(boolean requiresManualGrading) {
+        this.requiresManualGrading = requiresManualGrading;
     }
 }
