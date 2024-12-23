@@ -104,8 +104,13 @@ public class QuizController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         try {
-            quizSubmission.setQuiz(quizService.getQuizById(quizId));
-            QuizSubmission savedSubmission = quizService.submitQuiz(quizSubmission);
+            quizSubmission.setQuiz(quizId);
+            QuizSubmission savedSubmission = new QuizSubmission();
+            System.out.println(quizSubmission.getStudent());
+            savedSubmission.setStudent(quizSubmission.getStudent());
+            System.out.println(savedSubmission.getStudent());
+            System.out.println(savedSubmission);
+            savedSubmission = quizService.submitQuiz(quizSubmission);
             if (savedSubmission.isRequiresManualGrading()) {
                 return ResponseEntity.status(HttpStatus.ACCEPTED)
                         .body(savedSubmission);
@@ -116,32 +121,4 @@ public class QuizController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-
-//    @PostMapping("/gradeSubmission/{submissionId}")
-//    public ResponseEntity<QuizSubmission> gradeSubmission(
-//            @RequestHeader("Authorization") String authorizationHeader,
-//            @RequestBody List<Answer> gradedAnswers,
-//            @PathVariable Long submissionId) {
-//
-//        String token = extractToken(authorizationHeader);
-//        if (!userService.hasRole(token, "Instructor")) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-//        }
-//
-//        QuizSubmission submission = quizService.findQuizSubmissionById(submissionId);
-//
-//        int additionalScore = 0;
-//        for (Answer gradedAnswer : gradedAnswers) {
-//            Answer originalAnswer = quizService.findAnswerById(gradedAnswer.getId())
-//                    .orElseThrow(() -> new RuntimeException("Answer not found."));
-//            originalAnswer.setScore(gradedAnswer.getScore());
-//            additionalScore += gradedAnswer.getScore();
-//        }
-//
-//        submission.setScore(submission.getScore() + additionalScore);
-//        submission.setRequiresManualGrading(false);  // All questions graded
-//        QuizSubmission updatedSubmission = quizService.updateQuizSubmission(submission);
-//
-//        return ResponseEntity.ok(updatedSubmission);
-//    }
 }

@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -7,16 +8,12 @@ public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @JsonProperty("questionId")
+    private Long questionId;
 
-    @ManyToOne
-    @JoinColumn(name = "question_id", nullable = false)
-    private Question question;
+    private String answer;  // correct answer
 
-    private String answer;  // Student's answer
-
-    @ManyToOne
-    @JoinColumn(name = "quiz_submission_id", nullable = false)
-    private QuizSubmission quizSubmission;
+    private Long quizSubmissionId;
 
     private boolean isCorrect;
 
@@ -27,8 +24,8 @@ public class Answer {
 
     public Answer() {}
 
-    public Answer(Question question, String answer, int score) {
-        this.question = question;
+    public Answer(Long question, String answer, int score) {
+        this.questionId = question;
         this.answer = answer;
         this.score = score;
     }
@@ -48,17 +45,17 @@ public class Answer {
     public void setAnswer(String answer) {
         this.answer = answer;
     }
-    public Question getQuestion() {
-        return question;
+    public Long getQuestion() {
+        return questionId;
     }
-    public void setQuestion(Question question) {
-        this.question = question;
+    public void setQuestion(Long question) {
+        this.questionId = question;
     }
-    public QuizSubmission getQuizSubmission() {
-        return quizSubmission;
+    public Long getQuizSubmission() {
+        return quizSubmissionId;
     }
-    public void setQuizSubmission(QuizSubmission quizSubmission) {
-        this.quizSubmission = quizSubmission;
+    public void setQuizSubmission(Long quizSubmission) {
+        this.quizSubmissionId = quizSubmission;
     }
     public boolean isCorrect() {
         return isCorrect;
