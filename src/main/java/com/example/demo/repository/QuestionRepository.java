@@ -25,7 +25,7 @@ public class QuestionRepository {
 
     public List<Question> findByQuizId(Long quizId) {
         return questions.stream()
-                .filter(question -> question.getQuiz().getId().equals(quizId))
+                .filter(question -> question.getQuiz().equals(quizId))
                 .toList();
     }
 
@@ -48,6 +48,6 @@ public class QuestionRepository {
     }
 
     public void deleteAllByQuizId(Long quizId) {
-        questions.removeIf(question -> question.getQuiz().getId().equals(quizId));
+        questions.removeIf(question -> question.getQuiz().equals(quizId));
     }
 }
