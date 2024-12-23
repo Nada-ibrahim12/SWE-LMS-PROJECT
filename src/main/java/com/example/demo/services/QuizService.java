@@ -29,7 +29,13 @@ public class QuizService {
     public Quiz createQuiz(Long courseId, Quiz quiz) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+
         quiz.setCourse(course);
+
+        for (Question question : quiz.getQuestions()) {
+            question.setQuiz(quiz.getId());
+        }
+
         return quizRepository.save(quiz);
     }
 
