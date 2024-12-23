@@ -223,47 +223,30 @@ public ResponseEntity<String> addLessonToCourse(@PathVariable Long courseId, @Re
     }
 
     @GetMapping("/courses/{courseId}/enrolled")
-    public ResponseEntity<List<user>> viewEnrolled(@RequestHeader("Authorization") String authorizationHeader, 
-                                                            @PathVariable Long courseId) {
-        System.out.println("Authorization Header: " + authorizationHeader);
+    public ResponseEntity<?> viewEnrolled(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Long courseId) {
+        try {
+            // Validate Authorization header
+            String token = extractToken(authorizationHeader);
 
-        if (!isValidAuthorizationHeader(authorizationHeader)) {
-            System.out.println("Invalid Authorization Header");
-            return ResponseEntity.status(400).body(null); 
-        } else {
-            String token = authorizationHeader.replace("Bearer ", "");
-            System.out.println("Extracted Token: " + token);
-    
-            try {
-                if (userService.hasRole(token, "Instructor")) {
-                    System.out.println("User is an Instructor");
-                    List<user> enrolledStudents = courseService.viewEnrolledStudents(courseId, token);
-                    
-                    if (enrolledStudents.isEmpty()) {
-                        return ResponseEntity.status(204).body(enrolledStudents); 
-                    } else {
-                        return ResponseEntity.ok(enrolledStudents);
-                    }
-                } else if (userService.hasRole(token, "Admin")) {
-                    System.out.println("User is an Admin");
-                    List<user> enrolledStudents = courseService.viewEnrolledStudents(courseId, token);
+            // Verify role (Instructor or Admin)
+            if (userService.hasRole(token, "Instructor") || userService.hasRole(token, "Admin")) {
+                List<user> enrolledStudents = courseService.viewEnrolledStudents(courseId, token);
 
-                    if (enrolledStudents.isEmpty()) {
-                        return ResponseEntity.status(204).body(enrolledStudents); 
-                    } else {
-                        return ResponseEntity.ok(enrolledStudents);
-                    }
-                } else {
-                    System.out.println("User does not have the required role");
-                    return ResponseEntity.status(403).body(null); 
+                if (enrolledStudents.isEmpty()) {
+                    return ResponseEntity.noContent().build(); // 204 No Content
                 }
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-                return ResponseEntity.status(400).body(null);
+                return ResponseEntity.ok(enrolledStudents); // 200 OK with enrolled students
             }
+
+            return ResponseEntity.status(403).body("Access denied: Only Instructors or Admins can view enrolled students.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body("Invalid authorization header.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500).body("An unexpected error occurred: " + e.getMessage());
         }
     }
-    
 @GetMapping("/courses/available")
 public ResponseEntity<List<Course>> viewAvailableCourses(@RequestHeader("Authorization") String authorizationHeader) {
     if (!isValidAuthorizationHeader(authorizationHeader)) {

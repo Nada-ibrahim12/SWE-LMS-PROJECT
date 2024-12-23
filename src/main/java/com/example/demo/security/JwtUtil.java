@@ -20,7 +20,7 @@ public class JwtUtil {
                 .setSubject(username)
                 .claim("role", role) // Add role claim
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour expiration
+                .setExpiration(new Date(System.currentTimeMillis() + 10000 * 600 * 60)) // 1 hour expiration
                 .signWith(SECRET_KEY)
                 .compact();
     }

@@ -103,8 +103,17 @@ public class Course {
     }
 
     public void addLesson(Lesson lesson) {
-        lessons.add(lesson);
-        lesson.setCourse(this);
+        if (this.lessons.stream().anyMatch(existingLesson ->
+                existingLesson.getTitle().equalsIgnoreCase(lesson.getTitle()))) {
+            throw new IllegalArgumentException("A lesson with this title already exists in this course.");
+        }
+
+        if (this.lessons.stream().anyMatch(existingLesson ->
+                existingLesson.getId().equals(lesson.getId()))) {
+            throw new IllegalArgumentException("A lesson with the same ID already exists.");
+        }
+
+        this.lessons.add(lesson);
     }
 
     public void addStudent(user student) {

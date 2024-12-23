@@ -10,7 +10,6 @@ import com.example.demo.model.Course;
 import com.example.demo.model.Lesson;
 import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.LessonRepository;
-
 @Service
 public class LessonService {
 
@@ -24,7 +23,15 @@ public class LessonService {
     public Lesson createLesson(Lesson lesson, Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
+
         lesson.setCourse(course);
+
+        // Validate duplicate title within the course
+        if (lessonRepository.isDuplicateTitleWithinCourse(lesson.getTitle(), courseId)) {
+            throw new IllegalArgumentException("A lesson with this title already exists in the course: " + lesson.getTitle());
+        }
+
+        // Save the lesson
         return lessonRepository.save(lesson);
     }
 
@@ -49,6 +56,13 @@ public class LessonService {
     public Lesson updateLesson(Long lessonId, Lesson updatedLesson) {
         Lesson existingLesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
+
+        // Ensure the updated title is unique within the course
+        if (!existingLesson.getTitle().equalsIgnoreCase(updatedLesson.getTitle()) &&
+                lessonRepository.isDuplicateTitleWithinCourse(updatedLesson.getTitle(), existingLesson.getCourse().getId())) {
+            throw new IllegalArgumentException("A lesson with this title already exists in the course: " + updatedLesson.getTitle());
+        }
+
         existingLesson.setTitle(updatedLesson.getTitle());
         existingLesson.setContent(updatedLesson.getContent());
         return lessonRepository.save(existingLesson);
@@ -63,4 +77,3 @@ public class LessonService {
         return lessonRepository.existsByIdAndCourseId(lessonId, courseId);
     }
 }
-
