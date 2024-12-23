@@ -32,6 +32,15 @@ public class QuizRepository {
         return null;
     }
 
+    public QuizSubmission findQuizSubmissionById(Long id) {
+        for (QuizSubmission quiz : submissions) {
+            if (quiz.getId().equals(id)) {
+                return quiz;
+            }
+        }
+        return null;
+    }
+
     public Quiz save(Quiz quiz) {
         quizzes.add(quiz);
         return quiz;
