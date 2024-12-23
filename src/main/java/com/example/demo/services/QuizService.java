@@ -117,25 +117,26 @@ public class QuizService {
     }
 
     public QuizSubmission submitQuiz(QuizSubmission quizSubmission) {
-        Quiz quiz = quizRepository.findById(quizSubmission.getQuiz().getId());
+        Quiz quiz = quizRepository.findById(quizSubmission.getQuiz());
 
         int totalMarks = 0;
         int obtainedMarks = 0;
         boolean requiresManualGrading = false;
+
         for (Question question : quiz.getQuestions()) {
             totalMarks += question.getMarks();
         }
+
         for (Answer answer : quizSubmission.getAnswers()) {
             Question question = quiz.getQuestions().stream()
                     .filter(q -> q.getId().equals(answer.getQuestion().getId()))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Question not found"));
+                    .orElseThrow(() -> new RuntimeException("Question not found for Answer"));
 
             boolean isCorrect = false;
-
             switch (question.getQuestionType()) {
                 case "MCQ":
-                    isCorrect = question.getOptions().equals(answer.getAnswer());
+                    isCorrect = question.getAnswer().equals(answer.getAnswer());
                     break;
                 case "True/False":
                     isCorrect = question.getAnswer().equals(answer.getAnswer());
@@ -145,19 +146,27 @@ public class QuizService {
                     break;
             }
 
+            answer.setCorrect(isCorrect);
+            answer.setQuestion(question);
+            answer.setQuizSubmission(quizSubmission);
+
             if (isCorrect) {
                 obtainedMarks += question.getMarks();
             } else {
                 requiresManualGrading = true;
             }
         }
+
         double percentage = ((double) obtainedMarks / totalMarks) * 100;
         String feedback = generateFeedback(percentage);
+
         quizSubmission.setScore(obtainedMarks);
         quizSubmission.setRequiresManualGrading(requiresManualGrading);
 
-        String studentId = quizSubmission.getStudent().getUserId();
-        emailService.sendEmail(studentRepository.findById(studentId).getStudentEmail(), "Quiz Grade", feedback);
+        String studentId = quizSubmission.getStudent();
+        user student = studentRepository.findById(studentId);
+        String studentEmail = student.getEmail();
+        emailService.sendEmail(studentEmail, "Quiz Grade", feedback);
 
         return quizRepository.saveSubmissions(quizSubmission);
     }
