@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 @Repository
 public class NotificationRepository {
     private List<Notification> notifications = new ArrayList<>();
@@ -15,33 +14,45 @@ public class NotificationRepository {
     public List<Notification> findAll() {
         return notifications;
     }
-    public Optional<Notification> findById(Long id) {
-        return notifications.stream().filter(notification -> notification.getId().equals(id)).findFirst();
-    }
+
+
+
     public Notification save(Notification notification) {
         notifications.add(notification);
         return notification;
     }
-    public void delete(Long id) {
-        notifications.removeIf(notification -> notification.getId().equals(id));
 
+    public Notification findById(String id) {
+        System.out.println("Finding Notification with ID: " + id); // Debug log
+
+        // Find the notification
+        return notifications.stream()
+                .filter(notification -> notification.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Notification with ID " + id + " not found"));
     }
+
+    public void delete(String id) { // Use String for id
+        notifications.removeIf(notification -> notification.getId().equals(id));
+    }
+
     public List<Notification> findByUserIdAndIsRead(String userId, boolean isRead) {
-        List<Notification> notifications = new ArrayList<>();
+        List<Notification> filteredNotifications = new ArrayList<>();
         for (Notification notification : notifications) {
-            if (notification.getUserId() == userId && notification.isRead() == isRead) {
-                notifications.add(notification);
+            if (notification.getUserId().equals(userId) && notification.isRead() == isRead) {
+                filteredNotifications.add(notification);
             }
         }
-        return notifications;
+        return filteredNotifications;
     }
+
     public List<Notification> findByUserId(String userId) {
-        List<Notification> notifications = new ArrayList<>();
+        List<Notification> filteredNotifications = new ArrayList<>();
         for (Notification notification : notifications) {
-            if (notification.getUserId() == userId) {
-                notifications.add(notification);
+            if (notification.getUserId().equals(userId)) {
+                filteredNotifications.add(notification);
             }
         }
-        return notifications;
+        return filteredNotifications;
     }
 }

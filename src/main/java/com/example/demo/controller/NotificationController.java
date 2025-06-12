@@ -34,20 +34,20 @@ public class NotificationController {
     }
 
     @GetMapping("/admin/all")
-    public List<Notification> getAllNotifications(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<List<Notification>> getAllNotifications(@RequestHeader("Authorization") String authorizationHeader) {
         try {
             String token = extractToken(authorizationHeader);
             if (userService.hasRole(token, "Admin")) {
-                return notificationService.getAllNotifications();
+                List<Notification> notifications = notificationService.getAllNotifications();
+                return ResponseEntity.ok(notifications); // Return the list of notifications
             }
-            return (List<Notification>) ResponseEntity.status(403).body("Unauthorized");
+            return ResponseEntity.status(403).build(); // Return 403 Forbidden if not authorized
         } catch (IllegalArgumentException e) {
-            return (List<Notification>) ResponseEntity.status(400).body(e.getMessage());
+            return ResponseEntity.status(400).build(); // Return 400 Bad Request for invalid authorization header
         } catch (RuntimeException e) {
-            return (List<Notification>) ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(500).body(null); // Return 500 Internal Server Error for unexpected issues
         }
     }
-
     @GetMapping("/{id}")
     public Optional<Notification> getNotificationById(@PathVariable Long id) {
         return notificationService.getNotificationById(id);
@@ -55,7 +55,7 @@ public class NotificationController {
 
     @PostMapping("/admin/send")
     public ResponseEntity<Object> sendNotification(
-            @RequestHeader("Authorization") String authorizationHeader,
+           @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam String userId,
             @RequestParam String role,
             @RequestParam String message,
@@ -75,7 +75,9 @@ public class NotificationController {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while sending the notification.");
                 }
             }
-            return ResponseEntity.status(403).body("Unauthorized");
+            Notification notification = notificationService.sendNotification(userId, role, message, email, sendEmail);
+            return ResponseEntity.ok(notification);
+        //    return ResponseEntity.status(403).body("Unauthorized");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         } catch (RuntimeException e) {
@@ -106,6 +108,9 @@ public class NotificationController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable String userId) {
         List<Notification> notifications = notificationService.getUserNotifications(userId);
+        if (notifications.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(notifications); // Return 204 if no notifications are found
+        }
         return ResponseEntity.ok(notifications);
     }
     @GetMapping("/user/{userId}/unread")
@@ -114,8 +119,12 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
     @PutMapping("/mark-read/{notificationId}")
-    public ResponseEntity<String> markAsRead(@PathVariable Long notificationId) {
-        notificationService.markAsRead(notificationId);
-        return ResponseEntity.ok("Notification marked as read");
+    public ResponseEntity<String> markAsRead(@PathVariable String notificationId) { // Use String for id
+        try {
+            notificationService.markAsRead(notificationId);
+            return ResponseEntity.ok("Notification marked as read");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Notification not found");
+        }
     }
 }

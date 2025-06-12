@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class NotificationService {
@@ -19,7 +20,10 @@ public class NotificationService {
     private EmailSenderService emailSenderService;
 
     public String generateNotificationId() {
-        return UUID.randomUUID().toString();
+        AtomicLong counter = new AtomicLong(1);
+        long id = counter.getAndIncrement(); // Increment and get the next value
+        System.out.println(id);
+        return String.valueOf(id); // Return as a string
     }
 
     public Notification sendNotification(String userId, String role, String message, String userEmail, boolean sendEmail) {
@@ -40,28 +44,36 @@ public class NotificationService {
         }
         return notification;
     }
+
     public List<Notification> getAllNotifications() {
         return notificationRepository.findAll();
     }
+
     public Optional<Notification> getNotificationById(Long id) {
-        return notificationRepository.findById(id);
+        return Optional.ofNullable(notificationRepository.findById(String.valueOf(id)));
     }
-//    public Notification saveNotification(Notification notification) {
-//        return notificationRepository.save(notification);
-//    }
+
     public void deleteNotification(Long id) {
-        notificationRepository.delete(id);
+        notificationRepository.delete(String.valueOf(id));
     }
+
     public List<Notification> getUserNotifications(String userId) {
-        return notificationRepository.findByUserId(userId);
+        return notificationRepository.findByUserId(userId); // This should return the notifications for a specific user
     }
+
     public List<Notification> getUnreadNotifications(String userId) {
         return notificationRepository.findByUserIdAndIsRead(userId, false);
     }
-    public void markAsRead(Long notificationId) {
+
+    public void markAsRead(String notificationId) {
+        System.out.println(notificationId);
+        // Fetch the notification by ID
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                ;
+        // Update the `isRead` attribute
         notification.setRead(true);
+
+        // Save the updated notification back to the repository
         notificationRepository.save(notification);
     }
 }

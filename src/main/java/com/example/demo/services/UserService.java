@@ -1,6 +1,15 @@
 package com.example.demo.services;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+
+import io.micrometer.core.instrument.MultiGauge.Row;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +19,8 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtil;
 
 import jakarta.annotation.PostConstruct;
+
+import java.io.FileOutputStream;
 
 @Service
 public class UserService {
@@ -158,5 +169,43 @@ public class UserService {
 
         // Save the updated user
         userRepository.save(existingUser);
+    }
+/////////////////////////////////////////////////////////////
+public void addQuizScore(String username, String quizId, int score) {
+    userRepository.addQuizScore(username, quizId, score);
+}
+
+    public void addAssignmentSubmission(String username, String assignmentId) {
+        userRepository.addAssignmentSubmission(username, assignmentId);
+    }
+
+    public void incrementAttendance(String username) {
+        userRepository.incrementAttendance(username);
+    }
+
+
+    public String generatePerformanceReport(String fileName) throws IOException {
+        List<user> students = userRepository.findAll().stream()
+                .filter(user -> user.getRole().equals("Student"))
+                .toList();
+
+        // Create a FileWriter for the CSV file
+        try (FileWriter writer = new FileWriter(fileName)) {
+            // Write the header row
+            writer.append("Username,Quiz Scores,Assignments Submitted,Attendance\n");
+
+            // Write data rows for each student
+            for (user student : students) {
+                String row = String.join(",",
+                        student.getUsername(),
+                        student.getQuizScores().toString(),
+                        String.valueOf(student.getAssignmentSubmissions().size()),
+                        String.valueOf(student.getAttendanceCount())
+                );
+                writer.append(row).append("\n");
+            }
+        }
+
+        return "Report generated: " + fileName;
     }
 }

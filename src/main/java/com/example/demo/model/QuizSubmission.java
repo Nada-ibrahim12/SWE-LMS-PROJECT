@@ -10,13 +10,10 @@ public class QuizSubmission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne
-//    @JoinColumn(name = "student_id", nullable = false)
-    private String student;
 
-//    @ManyToOne
-//    @JoinColumn(name = "quiz_id", nullable = false)
-    private long quiz;
+    private String studentId;
+
+    private long quizId;
 
     private int score;
 
@@ -27,8 +24,8 @@ public class QuizSubmission {
 
     public QuizSubmission() {}
     public QuizSubmission(String student, long quiz, int score, List<Answer> answers, boolean requiresManualGrading) {
-        this.student = student;
-        this.quiz = quiz;
+        this.studentId = student;
+        this.quizId = quiz;
         this.score = score;
         this.answers = answers;
         this.requiresManualGrading = requiresManualGrading;
@@ -40,16 +37,16 @@ public class QuizSubmission {
         this.id = id;
     }
     public String getStudent() {
-        return student;
+        return studentId;
     }
     public void setStudent(String student) {
-        this.student = student;
+        this.studentId = student;
     }
     public long getQuiz() {
-        return quiz;
+        return quizId;
     }
     public void setQuiz(long quiz) {
-        this.quiz = quiz;
+        this.quizId = quiz;
     }
     public int getScore() {
         return score;

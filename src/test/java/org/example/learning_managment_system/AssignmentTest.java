@@ -1,12 +1,11 @@
 package org.example.learning_managment_system;
 
-import com.example.demo.model.*;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.example.demo.model.AssignmentSubmission;
 
 public class AssignmentTest {
 
@@ -14,7 +13,7 @@ public class AssignmentTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize an Assignment instance before each test
+        
         assignment = new AssignmentSubmission(1L, "/path/to/file", "student123", 85.0);
     }
 

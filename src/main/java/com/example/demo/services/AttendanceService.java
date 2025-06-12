@@ -31,7 +31,7 @@ public class AttendanceService {
         attendance.setStudentId(request.getStudentId());
         attendance.setCourseId(request.getCourseId());
         attendance.setLessonId(request.getLessonId());
-        attendance.isAttend(false);
+        attendance.setIsAttend(true); // Mark as attended
         attendance.setTimestamp(LocalDateTime.now());
 
         attendanceRepository.save(attendance);
