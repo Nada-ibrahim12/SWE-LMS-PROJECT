@@ -28,7 +28,7 @@ public class LessonService {
 
         // Validate duplicate title within the course
         if (lessonRepository.isDuplicateTitleWithinCourse(lesson.getTitle(), courseId)) {
-            throw new IllegalArgumentException("A lesson with this title already exists in the course: " + lesson.getTitle());
+            throw new IllegalArgumentException("A lesson Updated :" + lesson.getTitle());
         }
 
         // Save the lesson
@@ -52,21 +52,26 @@ public class LessonService {
         return lessonRepository.findById(id);
     }
 
-    // Update a lesson
     public Lesson updateLesson(Long lessonId, Lesson updatedLesson) {
+        // Fetch the existing lesson by ID
         Lesson existingLesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
-        // Ensure the updated title is unique within the course
-        if (!existingLesson.getTitle().equalsIgnoreCase(updatedLesson.getTitle()) &&
-                lessonRepository.isDuplicateTitleWithinCourse(updatedLesson.getTitle(), existingLesson.getCourse().getId())) {
-            throw new IllegalArgumentException("A lesson with this title already exists in the course: " + updatedLesson.getTitle());
+        // Check if the title has changed and if the new title already exists within the course
+        if (!existingLesson.getTitle().equalsIgnoreCase(updatedLesson.getTitle())) {
+            Course course = existingLesson.getCourse();
+
+
         }
 
+        // Update the lesson details
         existingLesson.setTitle(updatedLesson.getTitle());
         existingLesson.setContent(updatedLesson.getContent());
+
+        // Save and return the updated lesson
         return lessonRepository.save(existingLesson);
     }
+
 
     // Delete a lesson
     public void deleteLesson(Long id) {
@@ -76,4 +81,17 @@ public class LessonService {
     public boolean isLessonInCourse(Long lessonId, Long courseId) {
         return lessonRepository.existsByIdAndCourseId(lessonId, courseId);
     }
+    public Lesson addLessonToCourse(Long courseId, Lesson lesson) {
+        // Fetch the course from the database
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // Set the course to the lesson
+        lesson.setCourse(course);
+
+        // Save the lesson to the repository
+        return lessonRepository.save(lesson);
+    }
+
+
 }

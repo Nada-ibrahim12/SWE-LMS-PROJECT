@@ -71,7 +71,7 @@ public class QuizController {
 
     @GetMapping("/student/get-submission/{id}")
     public ResponseEntity<QuizSubmission> getSubmissionbyIdbyStu(@RequestHeader("Authorization") String authorizationHeader,
-                                            @PathVariable Long id) {
+                                                                 @PathVariable Long id) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Student")) {
             return ResponseEntity.ok(quizService.findQuizSubmissionById(id));
@@ -80,7 +80,7 @@ public class QuizController {
     }
     @GetMapping("/instructor/get-submission/{id}")
     public ResponseEntity<QuizSubmission> getSubmissionbyIdbyInst(@RequestHeader("Authorization") String authorizationHeader,
-                                                                 @PathVariable Long id) {
+                                                                  @PathVariable Long id) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Student")) {
             return ResponseEntity.ok(quizService.findQuizSubmissionById(id));
