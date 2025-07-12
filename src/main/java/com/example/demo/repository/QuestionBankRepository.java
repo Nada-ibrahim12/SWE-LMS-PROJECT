@@ -23,6 +23,14 @@ public class QuestionBankRepository {
         }
         return null;
     }
+    public QuestionBank findByCourseId(Long id) {
+        for (QuestionBank qb : questionBanks) {
+            if (qb.getCourse().getId().equals(id)) {
+                return qb;
+            }
+        }
+        return null;
+    }
 
     public QuestionBank save(QuestionBank questionBank) {
         questionBanks.add(questionBank);
@@ -39,6 +47,7 @@ public class QuestionBankRepository {
     public void delete(QuestionBank questionBank) {
         questionBanks.remove(questionBank);
     }
+
 
     public void deleteById(Long id) {
         QuestionBank qb = findById(id);

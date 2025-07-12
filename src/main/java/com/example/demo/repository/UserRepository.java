@@ -72,4 +72,15 @@ public class UserRepository {
         }
         return false;
     }
+    public void addQuizScore(String username, String quizId, int score) {
+        findByUsername(username).ifPresent(user -> user.getQuizScores().put(quizId, score));
+    }
+
+    public void addAssignmentSubmission(String username, String assignmentId) {
+        findByUsername(username).ifPresent(user -> user.getAssignmentSubmissions().put(assignmentId, true));
+    }
+
+    public void incrementAttendance(String username) {
+        findByUsername(username).ifPresent(user::incrementAttendance);
+    }
 }

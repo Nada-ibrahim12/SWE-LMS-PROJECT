@@ -42,11 +42,13 @@ public class QuizController {
                                            @RequestBody Quiz quiz) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Instructor")) {
-            Quiz createdQuiz = quizService.createQuiz(courseId, quiz);
+            int numOfQuestions = quiz.getNumOfQuestions();
+            Quiz createdQuiz = quizService.createQuiz(courseId, quiz, numOfQuestions);
             return ResponseEntity.ok(createdQuiz);
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
 
     // Get all quizzes (Instructor only)
     @GetMapping("/instructor/all")
@@ -58,6 +60,33 @@ public class QuizController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    @GetMapping("/instructor/submissions/all")
+    public ResponseEntity<List<QuizSubmission>> getAllSubmissions(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = extractToken(authorizationHeader);
+        if (userService.hasRole(token, "Instructor")) {
+            return ResponseEntity.ok(quizService.getAllSubmissions());
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @GetMapping("/student/get-submission/{id}")
+    public ResponseEntity<QuizSubmission> getSubmissionbyIdbyStu(@RequestHeader("Authorization") String authorizationHeader,
+                                                                 @PathVariable Long id) {
+        String token = extractToken(authorizationHeader);
+        if (userService.hasRole(token, "Student")) {
+            return ResponseEntity.ok(quizService.findQuizSubmissionById(id));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @GetMapping("/instructor/get-submission/{id}")
+    public ResponseEntity<QuizSubmission> getSubmissionbyIdbyInst(@RequestHeader("Authorization") String authorizationHeader,
+                                                                  @PathVariable Long id) {
+        String token = extractToken(authorizationHeader);
+        if (userService.hasRole(token, "Student")) {
+            return ResponseEntity.ok(quizService.findQuizSubmissionById(id));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
     // Get quiz by ID (Student only)
     @GetMapping("/student/get-quiz/{id}")
     public ResponseEntity<Quiz> getQuizById(@RequestHeader("Authorization") String authorizationHeader,
@@ -84,11 +113,12 @@ public class QuizController {
     // Randomize quiz questions (Instructor only)
     @GetMapping("/instructor/quizzes-randomize/{quizId}")
     public ResponseEntity<List<Question>> getRandomQuestionsForAttempt(@RequestHeader("Authorization") String authorizationHeader,
-                                                                       @PathVariable Long quizId,
+//                                                                       @PathVariable Long quizId,
+                                                                       @RequestParam("question-bank-id") Long questionBankId,
                                                                        @RequestParam int numQuestions) {
         String token = extractToken(authorizationHeader);
         if (userService.hasRole(token, "Instructor")) {
-            return ResponseEntity.ok(quizService.getRandomizedQuestions(quizId, numQuestions));
+            return ResponseEntity.ok(quizService.getRandomizedQuestions(questionBankId, numQuestions));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
@@ -105,7 +135,12 @@ public class QuizController {
         }
         try {
             quizSubmission.setQuiz(quizId);
-            QuizSubmission savedSubmission = quizService.submitQuiz(quizSubmission);
+            QuizSubmission savedSubmission = new QuizSubmission();
+            System.out.println(quizSubmission.getStudent());
+            savedSubmission.setStudent(quizSubmission.getStudent());
+            System.out.println(savedSubmission.getStudent());
+            System.out.println(savedSubmission);
+            savedSubmission = quizService.submitQuiz(quizSubmission);
             if (savedSubmission.isRequiresManualGrading()) {
                 return ResponseEntity.status(HttpStatus.ACCEPTED)
                         .body(savedSubmission);

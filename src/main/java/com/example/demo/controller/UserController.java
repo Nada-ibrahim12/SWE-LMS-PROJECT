@@ -7,27 +7,16 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.demo.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.Course;
 import com.example.demo.model.Lesson;
 import com.example.demo.model.QuestionBank;
 import com.example.demo.model.user;
-import com.example.demo.services.CourseService;
-import com.example.demo.services.EnrollmentService;
-import com.example.demo.services.FileStorageService;
-import com.example.demo.services.UserService;
 
 import io.jsonwebtoken.io.IOException;
 
@@ -37,7 +26,8 @@ public class UserController {
 
     @Autowired
     private CourseService courseService;
-
+    @Autowired
+    private LessonService lessonService;
     @Autowired
     private EnrollmentService enrollmentService;
 
@@ -168,19 +158,28 @@ public class UserController {
     }
 
     @PostMapping("/{courseId}/lessons")
-public ResponseEntity<String> addLessonToCourse(@PathVariable Long courseId, @RequestBody Lesson lesson,
-                                                @RequestHeader("Authorization") String authorizationHeader) {
-    if (!isValidAuthorizationHeader(authorizationHeader)) {
-        return ResponseEntity.status(400).body("Missing or invalid Authorization header");
-    }
+    public ResponseEntity<String> addLessonToCourse(@PathVariable Long courseId, @RequestBody Lesson lesson,
+                                                    @RequestHeader("Authorization") String authorizationHeader) {
+        // Check if the Authorization header is valid
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
+            return ResponseEntity.status(400).body("Missing or invalid Authorization header");
+        }
+        String token = authorizationHeader.replace("Bearer ", "");
 
-    String token = authorizationHeader.replace("Bearer ", "");
-    if (userService.hasRole(token, "Instructor")) {
-        courseService.addLessonToCourse(courseId, lesson, token);
-        return ResponseEntity.ok("Lesson added successfully");
+        if (userService.hasRole(token, "Instructor")) {
+
+            try {
+
+                Lesson savedLesson = lessonService.addLessonToCourse(courseId, lesson);
+                courseService.addLessonToCourse(courseId, lesson, token);
+                return ResponseEntity.ok("Lesson added successfully with ID: " + savedLesson.getId());
+            } catch (RuntimeException e) {
+                return ResponseEntity.status(404).body("Course not found: " + e.getMessage());
+            }
+        }
+
+        return ResponseEntity.status(403).body("Access denied. Instructor role required.");
     }
-    return ResponseEntity.status(403).body("Access denied. Instructor role required.");
-}
 
 
     @GetMapping("/instructor/students")
@@ -332,5 +331,76 @@ private String extractToken(String authorizationHeader) {
     private boolean isValidAuthorizationHeader(String authorizationHeader) {
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ");
     }
- 
+    @GetMapping("/profile")
+    public ResponseEntity<user> viewProfile(@RequestHeader("Authorization") String authorizationHeader) {
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
+            return ResponseEntity.status(400).body(null);
+        }
+        String token = authorizationHeader.replace("Bearer ", "");
+        return ResponseEntity.ok(userService.getUserProfile(token));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<String> updateProfile(@RequestHeader("Authorization") String authorizationHeader,
+                                                @RequestBody user updatedProfile) {
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
+            return ResponseEntity.status(400).body("Missing or invalid Authorization header");
+        }
+
+        try {
+            String token = authorizationHeader.replace("Bearer ", "");
+            userService.updateUserProfile(token, updatedProfile);
+            return ResponseEntity.ok("Profile updated successfully. Please log in again.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("An unexpected error occurred");
+        }
+    }
+    @PostMapping("/instructor/add-quiz-score")
+    public ResponseEntity<String> addQuizScore(@RequestHeader("Authorization") String authorizationHeader,
+                                               @RequestParam String studentUsername,
+                                               @RequestParam String quizId,
+                                               @RequestParam int score) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        if (userService.hasRole(token, "Instructor")) {
+            userService.addQuizScore(studentUsername, quizId, score);
+            return ResponseEntity.ok("Quiz score added successfully.");
+        }
+        return ResponseEntity.status(403).body("Access denied.");
+    }
+
+    @PostMapping("/instructor/submit-assignment")
+    public ResponseEntity<String> submitAssignment(@RequestHeader("Authorization") String authorizationHeader,
+                                                   @RequestParam String studentUsername,
+                                                   @RequestParam String assignmentId) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        if (userService.hasRole(token, "Instructor")) {
+            userService.addAssignmentSubmission(studentUsername, assignmentId);
+            return ResponseEntity.ok("Assignment submission recorded.");
+        }
+        return ResponseEntity.status(403).body("Access denied.");
+    }
+
+    @PostMapping("/instructor/increment-attendance")
+    public ResponseEntity<String> incrementAttendance(@RequestHeader("Authorization") String authorizationHeader,
+                                                      @RequestParam String studentUsername) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        if (userService.hasRole(token, "Instructor")) {
+            userService.incrementAttendance(studentUsername);
+            return ResponseEntity.ok("Attendance incremented.");
+        }
+        return ResponseEntity.status(403).body("Access denied.");
+    }
+
+    @GetMapping("/admin/generate-report")
+    public ResponseEntity<String> generateReport(@RequestHeader("Authorization") String authorizationHeader,
+                                                 @RequestParam String fileName) throws IOException, java.io.IOException {
+        String token = authorizationHeader.replace("Bearer ", "");
+        if (userService.hasRole(token, "Admin")) {
+            return ResponseEntity.ok(userService.generatePerformanceReport(fileName));
+        }
+        return ResponseEntity.status(403).body("Access denied.");
+    }
 }
+
