@@ -5,6 +5,8 @@ import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.QuizRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.QuestionBankRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,12 @@ public class QuizService {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private QuestionBankRepository questionBankRepository;
 
     public Quiz createQuiz(Long courseId, Quiz quiz) {
         Course course = courseRepository.findById(courseId)
@@ -51,50 +59,6 @@ public class QuizService {
         quizRepository.deleteById(id);
     }
 
-//    public void gradeQuiz(Long quizId, List<Answer> answers) {
-//        Quiz quiz = quizRepository.findById(quizId);
-//
-//        int totalMarks = 0;
-//        int obtainedMarks = 0;
-//
-//        for (Question question : quiz.getQuestions()) {
-//            totalMarks += question.getMarks();
-//
-//            Answer studentAnswer = answers.stream()
-//                    .filter(a -> a.getQuestion().getId().equals(question.getId()))
-//                    .findFirst()
-//                    .orElse(null);
-//
-//            if (studentAnswer != null) {
-//                boolean isCorrect = false;
-//
-//                switch (question.getQuestionType()) {
-//                    case "MCQ":
-//                        isCorrect = question.getOptions().equals(studentAnswer.getAnswer());
-//                        break;
-//                    case "True/False":
-//                        isCorrect = question.getAnswer().equals(studentAnswer.getAnswer());
-//                        break;
-//                    case "Short Answer":
-//                        isCorrect = question.getAnswer().equalsIgnoreCase(studentAnswer.getAnswer());
-//                        break;
-//                }
-//
-//                if (isCorrect) {
-//                    obtainedMarks += question.getMarks();
-//                }
-//            }
-//        }
-//
-//        double percentage = ((double) obtainedMarks / totalMarks) * 100;
-//        String feedback = generateFeedback(percentage);
-//
-//        if (!answers.isEmpty() && answers.get(0).getQuizSubmission().getStudent().getUserId() != null) {
-//            String studentId = answers.get(0).getQuizSubmission().getStudent().getUserId();
-//            emailService.sendEmail(studentRepository.findById(studentId).getStudentEmail(), "Quiz Grade", feedback);
-//        }
-//    }
-
     private String generateFeedback(double percentage) {
         if (percentage >= 90) {
             return "Excellent work! Keep it up!";
@@ -107,9 +71,9 @@ public class QuizService {
         }
     }
 
-    public List<Question> getRandomizedQuestions(Long quizId, int numQuestions) {
-        Quiz quiz = quizRepository.findById(quizId);
-        List<Question> questions = quiz.getQuestions();
+    public List<Question> getRandomizedQuestions(Long questionBankId, int numQuestions) {
+        QuestionBank questionBank = questionBankRepository.findById(questionBankId);
+        List<Question> questions = questionBank.getQuestions();
 
         Collections.shuffle(questions);
 
@@ -122,9 +86,11 @@ public class QuizService {
         int totalMarks = 0;
         int obtainedMarks = 0;
         boolean requiresManualGrading = false;
+
         for (Question question : quiz.getQuestions()) {
             totalMarks += question.getMarks();
         }
+
         for (Answer answer : quizSubmission.getAnswers()) {
             Question question = quiz.getQuestions().stream()
                     .filter(q -> q.getId().equals(answer.getQuestion().getId()))
@@ -151,13 +117,18 @@ public class QuizService {
                 requiresManualGrading = true;
             }
         }
+
         double percentage = ((double) obtainedMarks / totalMarks) * 100;
         String feedback = generateFeedback(percentage);
         quizSubmission.setScore(obtainedMarks);
         quizSubmission.setRequiresManualGrading(requiresManualGrading);
 
         String studentId = quizSubmission.getStudent().getUserId();
-        emailService.sendEmail(studentRepository.findById(studentId).getStudentEmail(), "Quiz Grade", feedback);
+        emailService.sendEmail(
+                studentRepository.findById(studentId).getStudentEmail(),
+                "Quiz Grade",
+                feedback
+        );
 
         return quizRepository.saveSubmissions(quizSubmission);
     }

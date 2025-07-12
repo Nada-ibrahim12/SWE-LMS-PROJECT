@@ -3,12 +3,17 @@ package com.example.demo.repository;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.demo.model.Question;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.model.QuestionBank;
 
 @Repository
 public class QuestionBankRepository {
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     private List<QuestionBank> questionBanks = new ArrayList<>();
 
@@ -34,6 +39,7 @@ public class QuestionBankRepository {
 
     public QuestionBank save(QuestionBank questionBank) {
         questionBanks.add(questionBank);
+//        addQuestions(questionBank);
         return questionBank;
     }
 
@@ -55,5 +61,12 @@ public class QuestionBankRepository {
             questionBanks.remove(qb);
         }
     }
+
+//    public void addQuestions(QuestionBank questionBank) {
+//        List<Question> questions = new ArrayList<>();
+//        for (int i = 0 ; i < questions.size() ; i++) {
+//            questionRepository.save(questions.get(i));
+//        }
+//    }
 }
 
