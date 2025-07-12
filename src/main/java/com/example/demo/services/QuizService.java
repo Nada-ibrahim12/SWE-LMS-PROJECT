@@ -1,13 +1,17 @@
 package com.example.demo.services;
 
 import com.example.demo.model.*;
-import com.example.demo.repository.*;
+import com.example.demo.repository.CourseRepository;
+import com.example.demo.repository.QuizRepository;
+import com.example.demo.repository.StudentRepository;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.QuestionBankRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class QuizService {
@@ -23,23 +27,22 @@ public class QuizService {
 
     @Autowired
     private CourseRepository courseRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private QuestionBankRepository questionBankRepository;
 
-    public Quiz createQuiz(Long courseId, Quiz quiz, int numOfQuestions) {
+    public Quiz createQuiz(Long courseId, Quiz quiz) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found"));
 
         quiz.setCourse(course);
 
-        QuestionBank questionBank = questionBankRepository.findByCourseId(courseId);
-        if (questionBank == null) {
-            throw new IllegalArgumentException("Question bank not found for the course");
+        for (Question question : quiz.getQuestions()) {
+            question.setQuiz(quiz.getId());
         }
-        List<Question> randomizedQuestions = getRandomizedQuestions(questionBank.getId(), numOfQuestions);
-        quiz.setQuestions(randomizedQuestions);
 
         return quizRepository.save(quiz);
     }
@@ -55,50 +58,6 @@ public class QuizService {
     public void deleteQuiz(Long id) {
         quizRepository.deleteById(id);
     }
-
-//    public void gradeQuiz(Long quizId, List<Answer> answers) {
-//        Quiz quiz = quizRepository.findById(quizId);
-//
-//        int totalMarks = 0;
-//        int obtainedMarks = 0;
-//
-//        for (Question question : quiz.getQuestions()) {
-//            totalMarks += question.getMarks();
-//
-//            Answer studentAnswer = answers.stream()
-//                    .filter(a -> a.getQuestion().getId().equals(question.getId()))
-//                    .findFirst()
-//                    .orElse(null);
-//
-//            if (studentAnswer != null) {
-//                boolean isCorrect = false;
-//
-//                switch (question.getQuestionType()) {
-//                    case "MCQ":
-//                        isCorrect = question.getOptions().equals(studentAnswer.getAnswer());
-//                        break;
-//                    case "True/False":
-//                        isCorrect = question.getAnswer().equals(studentAnswer.getAnswer());
-//                        break;
-//                    case "Short Answer":
-//                        isCorrect = question.getAnswer().equalsIgnoreCase(studentAnswer.getAnswer());
-//                        break;
-//                }
-//
-//                if (isCorrect) {
-//                    obtainedMarks += question.getMarks();
-//                }
-//            }
-//        }
-//
-//        double percentage = ((double) obtainedMarks / totalMarks) * 100;
-//        String feedback = generateFeedback(percentage);
-//
-//        if (!answers.isEmpty() && answers.get(0).getQuizSubmission().getStudent().getUserId() != null) {
-//            String studentId = answers.get(0).getQuizSubmission().getStudent().getUserId();
-//            emailService.sendEmail(studentRepository.findById(studentId).getStudentEmail(), "Quiz Grade", feedback);
-//        }
-//    }
 
     private String generateFeedback(double percentage) {
         if (percentage >= 90) {
@@ -122,9 +81,7 @@ public class QuizService {
     }
 
     public QuizSubmission submitQuiz(QuizSubmission quizSubmission) {
-        Quiz quiz = quizRepository.findById(quizSubmission.getQuiz());
-
-        System.out.println(quizSubmission.getStudent());
+        Quiz quiz = quizRepository.findById(quizSubmission.getQuiz().getId());
 
         int totalMarks = 0;
         int obtainedMarks = 0;
@@ -136,30 +93,23 @@ public class QuizService {
 
         for (Answer answer : quizSubmission.getAnswers()) {
             Question question = quiz.getQuestions().stream()
-                    .filter(q -> q.getId().equals(answer.getQuestion()))
+                    .filter(q -> q.getId().equals(answer.getQuestion().getId()))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Question not found with ID: " + answer.getQuestion()));
-
-            answer.setAnswer(question.getAnswer());
+                    .orElseThrow(() -> new RuntimeException("Question not found"));
 
             boolean isCorrect = false;
+
             switch (question.getQuestionType()) {
                 case "MCQ":
-                    isCorrect = question.getAnswer().equals(answer.getSubmittedAnswer());
+                    isCorrect = question.getOptions().equals(answer.getAnswer());
                     break;
                 case "True/False":
-                    isCorrect = question.getAnswer().equals(answer.getSubmittedAnswer());
+                    isCorrect = question.getAnswer().equals(answer.getAnswer());
                     break;
                 case "Short Answer":
-                    isCorrect = question.getAnswer().equalsIgnoreCase(answer.getSubmittedAnswer());
+                    isCorrect = question.getAnswer().equalsIgnoreCase(answer.getAnswer());
                     break;
             }
-            if (isCorrect) {
-                answer.setScore(question.getMarks());
-            }
-            answer.setCorrect(isCorrect);
-            answer.setQuestion(question.getId());
-            answer.setQuizSubmission(quizSubmission.getId());
 
             if (isCorrect) {
                 obtainedMarks += question.getMarks();
@@ -169,17 +119,16 @@ public class QuizService {
         }
 
         double percentage = ((double) obtainedMarks / totalMarks) * 100;
-        String feedback = "Your Percentage: "+ percentage + "\nFeedback: " + generateFeedback(percentage) ;
-
+        String feedback = generateFeedback(percentage);
         quizSubmission.setScore(obtainedMarks);
         quizSubmission.setRequiresManualGrading(requiresManualGrading);
 
-        String studentId = quizSubmission.getStudent();
-        Optional<user> student = userRepository.findById(studentId);
-        System.out.println(student);
-        String studentEmail = student.get().getEmail();
-        System.out.println(studentEmail);
-        emailService.sendEmail(studentEmail, "Quiz Grade", feedback);
+        String studentId = quizSubmission.getStudent().getUserId();
+        emailService.sendEmail(
+                studentRepository.findById(studentId).getStudentEmail(),
+                "Quiz Grade",
+                feedback
+        );
 
         return quizRepository.saveSubmissions(quizSubmission);
     }
@@ -192,8 +141,4 @@ public class QuizService {
         quizRepository.saveSubmissions(submission);
         return submission;
     }
-    public List<QuizSubmission> getAllSubmissions() {
-        return quizRepository.findAllSubmissions();
-    }
-
 }
